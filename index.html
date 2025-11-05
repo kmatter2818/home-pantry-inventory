@@ -2,29 +2,76 @@
 <html>
   <head>
     <title>My Pantry Tracker</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 2rem; }
-      input, select { padding: 6px; font-size: 1rem; margin-right: 4px; }
-      button { padding: 6px 12px; font-size: 1rem; margin-right: 4px; }
-      ul { margin-top: 1rem; padding-left: 0; }
-      li { 
-        list-style: none; 
-        padding: 6px; 
-        border-bottom: 1px solid #ccc; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between;
-      }
-      .info {
-        flex: 1;
-        margin-left: 8px;
-      }
-      .done {
-        text-decoration: line-through;
-        color: gray;
-      }
-      h2 { margin-top: 2rem; }
-    </style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 1rem;
+  }
+
+  h1, h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  input, select, button {
+    padding: 10px;
+    font-size: 1rem;
+    margin: 4px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .inline-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .inline-row > * {
+    flex: 1;
+  }
+
+  button {
+    border-radius: 6px;
+  }
+
+  ul {
+    margin-top: 1rem;
+    padding-left: 0;
+  }
+
+  li {
+    list-style: none;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .info {
+    flex: 1;
+    margin-left: 8px;
+  }
+
+  .done {
+    text-decoration: line-through;
+    color: gray;
+  }
+
+  /* MOBILE FIRST */
+  @media (max-width: 600px) {
+    li {
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+    button {
+      font-size: 0.9rem;
+      padding: 8px;
+    }
+  }
+</style>
   </head>
   <body>
     <h1>My Pantry Tracker</h1>
