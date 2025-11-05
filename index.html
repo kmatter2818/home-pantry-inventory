@@ -60,8 +60,8 @@
 
     <script>
       // ===== CONFIG =====
-      const API_BASE = "http://127.0.0.1:8000";   // local backend
-      const HOUSEHOLD_KEY = "home";               // shared family group
+      const API_BASE = "https://pantry-api-74qw.onrender.com";
+      const HOUSEHOLD_KEY = "home";   // pick anything; same key = shared data
 
       let items = [];
 
@@ -105,33 +105,32 @@
       }
 
       async function apiDelete(id) {
-        const res = await fetch(`${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`, { method: "DELETE" });
+        const res = await fetch(
+          `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`,
+          { method: "DELETE" }
+        );
         if (!res.ok) throw new Error("DELETE failed");
         return await res.json();
       }
 
-
-
-      // ---- INITIAL LOAD ----
+      // ---- LOAD ITEMS ----
       async function loadItems() {
         try {
           items = await apiGet();
           localStorage.setItem("cache_items", JSON.stringify(items));
         } catch (e) {
-          // fallback if offline
           items = JSON.parse(localStorage.getItem("cache_items") || "[]");
         }
         render();
       }
 
-
-
-      // ---- UI ACTIONS ----
+      // ---- ACTIONS ----
       async function addItem() {
         const name = document.getElementById('itemInput').value.trim();
         const qty  = document.getElementById('qtyInput').value.trim();
         const cat  = document.getElementById('catInput').value.trim();
         const exp  = document.getElementById('expInput').value.trim();
+
         if (!name || !qty) return;
 
         const created = await apiCreate({ name, qty, cat, exp, done:false, location:"shopping" });
@@ -148,8 +147,6 @@
         document.getElementById('expInput').value = "";
       }
 
-
-
       async function toggleDone(idx) {
         const x = items[idx];
         x.done = !x.done;
@@ -159,7 +156,6 @@
         render();
       }
 
-
       async function moveItem(idx) {
         const x = items[idx];
         x.location = (x.location === "shopping") ? "pantry" : "shopping";
@@ -168,7 +164,6 @@
         localStorage.setItem("cache_items", JSON.stringify(items));
         render();
       }
-
 
       async function editItem(idx) {
         const x = items[idx];
@@ -188,7 +183,6 @@
         render();
       }
 
-
       async function deleteItem(idx) {
         const id = items[idx].id;
         await apiDelete(id);
@@ -196,8 +190,6 @@
         localStorage.setItem("cache_items", JSON.stringify(items));
         render();
       }
-
-
 
       function sortAlpha() {
         items.sort((a, b) => a.name.localeCompare(b.name));
@@ -209,15 +201,13 @@
         render();
       }
 
-
-
       // ---- RENDER ----
       function render() {
         const sUL = document.getElementById('shoppingList');
         const pUL = document.getElementById('pantryList');
-
         const search = (document.getElementById('searchInput')?.value || "").toLowerCase();
-        sUL.innerHTML = ''; 
+
+        sUL.innerHTML = '';
         pUL.innerHTML = '';
 
         items.forEach((item, index) => {
@@ -260,18 +250,20 @@
           li.appendChild(editBtn);
           li.appendChild(delBtn);
 
-          if (item.location === "shopping") sUL.appendChild(li);
-          else pUL.appendChild(li);
+          if (item.location === "shopping") {
+            sUL.appendChild(li);
+          } else {
+            pUL.appendChild(li);
+          }
         });
       }
 
-
       // ---- START ----
       window.addEventListener('load', loadItems);
-
     </script>
   </body>
 </html>
+
 
 
 
