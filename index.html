@@ -4,23 +4,42 @@
     <title>My Pantry Tracker</title>
     <style>
       body { font-family: Arial, sans-serif; margin: 2rem; }
-      input { padding: 6px; font-size: 1rem; }
+      input, select { padding: 6px; font-size: 1rem; margin-right: 4px; }
       button { padding: 6px 12px; font-size: 1rem; }
-      ul { margin-top: 1rem; }
+      ul { margin-top: 1rem; padding-left: 0; }
+      li { 
+        list-style: none; 
+        padding: 6px; 
+        border-bottom: 1px solid #ccc; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+      }
+      .info {
+        flex: 1;
+      }
     </style>
   </head>
   <body>
     <h1>Shopping List</h1>
 
-    <!-- Input form -->
-    <input id="itemInput" type="text" placeholder="Add an item">
+    <input id="itemInput" type="text" placeholder="Item">
+    <input id="qtyInput" type="number" placeholder="Qty" min="1" style="width:60px">
+
+    <select id="catInput">
+      <option value="">Category</option>
+      <option>Dairy</option>
+      <option>Produce</option>
+      <option>Meat</option>
+      <option>Canned</option>
+      <option>Bread</option>
+    </select>
+
     <button onclick="addItem()">Add</button>
 
-    <!-- List display -->
     <ul id="shoppingList"></ul>
 
     <script>
-      // Load saved list
       let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
 
       function saveItems() {
@@ -30,26 +49,46 @@
       function render() {
         const ul = document.getElementById('shoppingList');
         ul.innerHTML = '';
+
         items.forEach((item, index) => {
           const li = document.createElement('li');
-          li.textContent = item;
+
+          const info = document.createElement('div');
+          info.className = "info";
+          info.textContent = `${item.name} — ${item.qty} — ${item.cat}`;
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = "Delete";
+          delBtn.onclick = () => {
+            items.splice(index, 1);
+            saveItems();
+            render();
+          };
+
+          li.appendChild(info);
+          li.appendChild(delBtn);
           ul.appendChild(li);
         });
       }
 
       function addItem() {
-        const input = document.getElementById('itemInput');
-        const value = input.value.trim();
-        if (!value) return;
+        const name = document.getElementById('itemInput').value.trim();
+        const qty = document.getElementById('qtyInput').value.trim();
+        const cat = document.getElementById('catInput').value.trim();
 
-        items.push(value);
+        if (!name || !qty) return;
+
+        items.push({ name, qty, cat });
         saveItems();
         render();
-        input.value = '';
+
+        document.getElementById('itemInput').value = "";
+        document.getElementById('qtyInput').value = "";
+        document.getElementById('catInput').value = "";
       }
 
-      // First display
       render();
     </script>
   </body>
 </html>
+
