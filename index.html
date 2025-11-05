@@ -4,6 +4,9 @@
   <title>My Pantry Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- ✅ PWA manifest -->
+  <link rel="manifest" href="./manifest.json">
+
   <style>
     :root {
       --bg: #ffffff;
@@ -14,7 +17,6 @@
       --button-text: #000000;
     }
 
-    /* DARK THEME VARIABLES */
     .dark {
       --bg: #1e1e1e;
       --text: #e8e8e8;
@@ -83,7 +85,6 @@
       color: gray;
     }
 
-    /* mild responsiveness */
     @media (max-width: 600px) {
       li {
         gap: 4px;
@@ -122,7 +123,6 @@
   <br>
   <input id="searchInput" placeholder="Search..." oninput="render()">
 
-
   <h2>Shopping List</h2>
   <ul id="shoppingList"></ul>
 
@@ -131,16 +131,18 @@
 
 
 <script>
-  // ===== CONFIG =====
-  const API_BASE = "https://pantry-api-74qw.onrender.com";   // cloud backend
-  const HOUSEHOLD_KEY = "home";   // shared group id
+  /* =======================
+      API CONFIG
+  ======================== */
+  const API_BASE = "https://pantry-api-74qw.onrender.com";
+  const HOUSEHOLD_KEY = "home";
 
   let items = [];
 
-  /* ================================
-        THEME
-     ================================ */
 
+  /* =======================
+      THEME
+  ======================== */
   function applyTheme(theme) {
     if (theme === "dark") {
       document.body.classList.add("dark");
@@ -156,14 +158,12 @@
     applyTheme(next);
   }
 
-  // On load, apply saved theme
   applyTheme(localStorage.getItem("theme") || "light");
 
 
-  /* ================================
-       API HELPERS
-     ================================ */
-
+  /* =======================
+      API HELPERS
+  ======================== */
   function toPayload(x) {
     return {
       household: HOUSEHOLD_KEY,
@@ -178,7 +178,6 @@
 
   async function apiGet() {
     const res = await fetch(`${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}`);
-    if (!res.ok) throw new Error("GET failed");
     return await res.json();
   }
 
@@ -188,7 +187,6 @@
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(toPayload(x))
     });
-    if (!res.ok) throw new Error("POST failed");
     return await res.json();
   }
 
@@ -198,7 +196,6 @@
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(toPayload(x))
     });
-    if (!res.ok) throw new Error("PUT failed");
     return await res.json();
   }
 
@@ -207,35 +204,32 @@
       `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`,
       { method: "DELETE" }
     );
-    if (!res.ok) throw new Error("DELETE failed");
     return await res.json();
   }
 
 
-  /* ================================
-       LOAD ITEMS
-     ================================ */
-
+  /* =======================
+      LOAD
+  ======================== */
   async function loadItems() {
     try {
       items = await apiGet();
       localStorage.setItem("cache_items", JSON.stringify(items));
-    } catch (e) {
+    } catch {
       items = JSON.parse(localStorage.getItem("cache_items") || "[]");
     }
     render();
   }
 
 
-  /* ================================
-       MAIN ACTIONS
-     ================================ */
-
+  /* =======================
+      ACTIONS
+  ======================== */
   async function addItem() {
-    const name = document.getElementById('itemInput').value.trim();
-    const qty  = document.getElementById('qtyInput').value.trim();
-    const cat  = document.getElementById('catInput').value.trim();
-    const exp  = document.getElementById('expInput').value.trim();
+    const name = itemInput.value.trim();
+    const qty  = qtyInput.value.trim();
+    const cat  = catInput.value.trim();
+    const exp  = expInput.value.trim();
 
     if (!name || !qty) return;
 
@@ -247,10 +241,10 @@
   }
 
   function clearForm() {
-    document.getElementById('itemInput').value = "";
-    document.getElementById('qtyInput').value = "";
-    document.getElementById('catInput').value = "";
-    document.getElementById('expInput').value = "";
+    itemInput.value = "";
+    qtyInput.value = "";
+    catInput.value = "";
+    expInput.value = "";
   }
 
   async function toggleDone(idx) {
@@ -275,10 +269,13 @@
     const x = items[idx];
     const name = prompt("Name:", x.name);
     if (name === null) return;
+
     const qty  = prompt("Qty:", x.qty);
     if (qty === null) return;
+
     const cat  = prompt("Category:", x.cat || "");
     if (cat === null) return;
+
     const exp  = prompt("Expiration (YYYY-MM-DD):", x.exp || "");
     if (exp === null) return;
 
@@ -308,43 +305,39 @@
   }
 
 
-  /* ================================
-       RENDER
-     ================================ */
-
+  /* =======================
+      RENDER
+  ======================== */
   function render() {
-    const sUL = document.getElementById('shoppingList');
-    const pUL = document.getElementById('pantryList');
-    const search = (document.getElementById('searchInput')?.value || "").toLowerCase();
-
-    sUL.innerHTML = '';
-    pUL.innerHTML = '';
+    shoppingList.innerHTML = "";
+    pantryList.innerHTML = "";
+    const filter = searchInput.value?.toLowerCase() ?? "";
 
     items.forEach((item, index) => {
-      if (search && !item.name.toLowerCase().includes(search)) return;
+      if (filter && !item.name.toLowerCase().includes(filter)) return;
 
-      const li = document.createElement('li');
+      const li = document.createElement("li");
 
-      const chk = document.createElement('input');
+      const chk = document.createElement("input");
       chk.type = "checkbox";
       chk.checked = item.done;
       chk.onchange = () => toggleDone(index);
 
-      const info = document.createElement('div');
+      const info = document.createElement("div");
       info.className = "info";
       const expText = item.exp ? ` — ${item.exp}` : "";
       info.textContent = `${item.name} — ${item.qty} — ${item.cat || ""}${expText}`;
       if (item.done) info.classList.add("done");
 
-      const moveBtn = document.createElement('button');
-      moveBtn.textContent = (item.location === "shopping") ? "➡ Pantry" : "⬅ Shopping";
+      const moveBtn = document.createElement("button");
+      moveBtn.textContent = item.location === "shopping" ? "➡ Pantry" : "⬅ Shopping";
       moveBtn.onclick = () => moveItem(index);
 
-      const editBtn = document.createElement('button');
+      const editBtn = document.createElement("button");
       editBtn.textContent = "Edit";
       editBtn.onclick = () => editItem(index);
 
-      const delBtn = document.createElement('button');
+      const delBtn = document.createElement("button");
       delBtn.textContent = "X";
       delBtn.onclick = () => deleteItem(index);
 
@@ -355,18 +348,32 @@
       li.appendChild(delBtn);
 
       if (item.location === "shopping") {
-        sUL.appendChild(li);
+        shoppingList.appendChild(li);
       } else {
-        pUL.appendChild(li);
+        pantryList.appendChild(li);
       }
     });
   }
 
-  window.addEventListener('load', loadItems);
+  window.addEventListener("load", loadItems);
+</script>
+
+
+<!-- ✅ Register service worker -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./service-worker.js")
+        .then(() => console.log("✅ Service Worker Registered"))
+        .catch(err => console.log("SW reg failed:", err));
+    });
+  }
 </script>
 
 </body>
 </html>
+
 
 
 
