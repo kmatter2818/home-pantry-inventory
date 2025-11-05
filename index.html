@@ -113,7 +113,7 @@
     <option>Canned</option>
     <option>Bread</option>
   </select>
-  <input id="expInput" type="date">
+
   <button onclick="addItem()">Add</button>
 
   <br>
@@ -229,11 +229,10 @@
     const name = itemInput.value.trim();
     const qty  = qtyInput.value.trim();
     const cat  = catInput.value.trim();
-    const exp  = expInput.value.trim();
 
     if (!name || !qty) return;
 
-    const created = await apiCreate({ name, qty, cat, exp, done:false, location:"shopping" });
+    const created = await apiCreate({ name, qty, cat, exp:null, done:false, location:"shopping" });
     items.push(created);
     localStorage.setItem("cache_items", JSON.stringify(items));
     clearForm();
@@ -244,7 +243,6 @@
     itemInput.value = "";
     qtyInput.value = "";
     catInput.value = "";
-    expInput.value = "";
   }
 
   async function toggleDone(idx) {
@@ -373,6 +371,7 @@
 
 </body>
 </html>
+
 
 
 
