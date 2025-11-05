@@ -5,18 +5,22 @@
     <style>
       body { font-family: Arial, sans-serif; margin: 2rem; }
       input, select { padding: 6px; font-size: 1rem; margin-right: 4px; }
-      button { padding: 6px 12px; font-size: 1rem; }
+      button { padding: 6px 12px; font-size: 1rem; margin-right: 4px; }
       ul { margin-top: 1rem; padding-left: 0; }
       li { 
         list-style: none; 
         padding: 6px; 
         border-bottom: 1px solid #ccc; 
         display: flex; 
-        justify-content: space-between; 
         align-items: center; 
+        justify-content: space-between;
       }
       .info {
         flex: 1;
+      }
+      .done {
+        text-decoration: line-through;
+        color: gray;
       }
     </style>
   </head>
@@ -35,7 +39,16 @@
       <option>Bread</option>
     </select>
 
+    <input id="expInput" type="date">
+
     <button onclick="addItem()">Add</button>
+
+    <br><br>
+
+    <button onclick="sortAlpha()">Sort A→Z</button>
+    <button onclick="sortCat()">Sort by Category</button>
+
+    <input id="searchInput" placeholder="Search..." oninput="render()">
 
     <ul id="shoppingList"></ul>
 
@@ -50,13 +63,41 @@
         const ul = document.getElementById('shoppingList');
         ul.innerHTML = '';
 
+        const search = document.getElementById('searchInput').value.toLowerCase();
+
         items.forEach((item, index) => {
+          if (!item.name.toLowerCase().includes(search)) return;
+
           const li = document.createElement('li');
+
+          const left = document.createElement('div');
+          left.style.display = "flex";
+          left.style.alignItems = "center";
+
+          // checkbox
+          const chk = document.createElement('input');
+          chk.type = "checkbox";
+          chk.checked = item.done;
+          chk.onchange = () => {
+            item.done = !item.done;
+            saveItems();
+            render();
+          };
 
           const info = document.createElement('div');
           info.className = "info";
-          info.textContent = `${item.name} — ${item.qty} — ${item.cat}`;
+          info.textContent = `${item.name} — ${item.qty} — ${item.cat} — ${item.exp}`;
+          if (item.done) info.classList.add("done");
 
+          left.appendChild(chk);
+          left.appendChild(info);
+
+          // Edit button
+          const editBtn = document.createElement('button');
+          editBtn.textContent = "Edit";
+          editBtn.onclick = () => editItem(index);
+
+          // Delete button
           const delBtn = document.createElement('button');
           delBtn.textContent = "Delete";
           delBtn.onclick = () => {
@@ -65,8 +106,10 @@
             render();
           };
 
-          li.appendChild(info);
+          li.appendChild(left);
+          li.appendChild(editBtn);
           li.appendChild(delBtn);
+
           ul.appendChild(li);
         });
       }
@@ -75,20 +118,47 @@
         const name = document.getElementById('itemInput').value.trim();
         const qty = document.getElementById('qtyInput').value.trim();
         const cat = document.getElementById('catInput').value.trim();
+        const exp = document.getElementById('expInput').value.trim();
 
         if (!name || !qty) return;
 
-        items.push({ name, qty, cat });
+        items.push({ name, qty, cat, exp, done:false });
         saveItems();
         render();
 
         document.getElementById('itemInput').value = "";
         document.getElementById('qtyInput').value = "";
         document.getElementById('catInput').value = "";
+        document.getElementById('expInput').value = "";
+      }
+
+      function editItem(i) {
+        const item = items[i];
+        const name = prompt("Name:", item.name);
+        const qty = prompt("Qty:", item.qty);
+        const cat = prompt("Category:", item.cat);
+        const exp = prompt("Expiration:", item.exp);
+
+        items[i] = { ...item, name, qty, cat, exp };
+        saveItems();
+        render();
+      }
+
+      function sortAlpha() {
+        items.sort((a, b) => a.name.localeCompare(b.name));
+        saveItems();
+        render();
+      }
+
+      function sortCat() {
+        items.sort((a, b) => a.cat.localeCompare(b.cat));
+        saveItems();
+        render();
       }
 
       render();
     </script>
   </body>
 </html>
+
 
