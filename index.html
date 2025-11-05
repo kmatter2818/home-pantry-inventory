@@ -2,9 +2,54 @@
 <html>
   <head>
     <title>My Pantry Tracker</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      input { padding: 6px; font-size: 1rem; }
+      button { padding: 6px 12px; font-size: 1rem; }
+      ul { margin-top: 1rem; }
+    </style>
   </head>
   <body>
-    <h1>Welcome to My Pantry!!</h1>
-    <p>This site is under construction 🏗️</p>
+    <h1>Shopping List</h1>
+
+    <!-- Input form -->
+    <input id="itemInput" type="text" placeholder="Add an item">
+    <button onclick="addItem()">Add</button>
+
+    <!-- List display -->
+    <ul id="shoppingList"></ul>
+
+    <script>
+      // Load saved list
+      let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
+
+      function saveItems() {
+        localStorage.setItem('shoppingList', JSON.stringify(items));
+      }
+
+      function render() {
+        const ul = document.getElementById('shoppingList');
+        ul.innerHTML = '';
+        items.forEach((item, index) => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          ul.appendChild(li);
+        });
+      }
+
+      function addItem() {
+        const input = document.getElementById('itemInput');
+        const value = input.value.trim();
+        if (!value) return;
+
+        items.push(value);
+        saveItems();
+        render();
+        input.value = '';
+      }
+
+      // First display
+      render();
+    </script>
   </body>
 </html>
