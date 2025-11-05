@@ -20,14 +20,37 @@
     }
 
     /* FORM + CONTROLS */
-    input, select, button {
-      padding: 12px;
-      font-size: 1rem;
-      margin: 6px 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
+/* Form controls full width */
+input, select {
+  padding: 12px;
+  font-size: 1rem;
+  margin: 6px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
 
+/* Default button style */
+button {
+  padding: 10px 12px;
+  font-size: 1rem;
+  margin: 6px 0;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* LIST ITEM BUTTONS — compact */
+li button {
+  width: auto;
+  flex: 0;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Keep Edit + Delete closer together */
+li {
+  gap: 0.25rem;
+}
     .inline-row {
       display: flex;
       gap: 0.5rem;
