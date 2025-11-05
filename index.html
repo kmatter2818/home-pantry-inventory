@@ -1,315 +1,327 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My Pantry Tracker</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 1rem;
-  }
+<head>
+  <title>My Pantry Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  h1, h2 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-    text-align: center;
-  }
-
-  input, select, button {
-    padding: 10px;
-    font-size: 1rem;
-    margin: 4px 0;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .inline-row {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .inline-row > * {
-    flex: 1;
-  }
-
-  button {
-    border-radius: 6px;
-  }
-
-  ul {
-    margin-top: 1rem;
-    padding-left: 0;
-  }
-
-  li {
-    list-style: none;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .info {
-    flex: 1;
-    margin-left: 8px;
-  }
-
-  .done {
-    text-decoration: line-through;
-    color: gray;
-  }
-
-  /* MOBILE FIRST */
-  @media (max-width: 600px) {
-    li {
-      flex-wrap: wrap;
-      gap: 0.25rem;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 1rem;
+      max-width: 750px;
+      margin-left: auto;
+      margin-right: auto;
     }
+
+    h1, h2 {
+      text-align: center;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* FORM + CONTROLS */
+    input, select, button {
+      padding: 12px;
+      font-size: 1rem;
+      margin: 6px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .inline-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .inline-row > * {
+      flex: 1;
+    }
+
     button {
-      font-size: 0.9rem;
-      padding: 8px;
+      border-radius: 6px;
     }
-  }
-</style>
-  </head>
-  <body>
-    <h1>My Pantry Tracker</h1>
 
-    <h2>Add Item</h2>
+    /* LIST STYLING */
+    ul {
+      margin-top: 1rem;
+      padding-left: 0;
+    }
 
+    li {
+      list-style: none;
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .info {
+      flex: 1;
+      margin-left: 8px;
+    }
+
+    .done {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    /* BUTTON GROUP */
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>My Pantry Tracker</h1>
+
+  <h2>Add Item</h2>
+
+  <div class="inline-row">
     <input id="itemInput" type="text" placeholder="Item">
-    <input id="qtyInput" type="number" placeholder="Qty" min="1" style="width:60px">
-    <select id="catInput">
-      <option value="">Category</option>
-      <option>Dairy</option>
-      <option>Produce</option>
-      <option>Meat</option>
-      <option>Canned</option>
-      <option>Bread</option>
-    </select>
-    <input id="expInput" type="date">
-    <button onclick="addItem()">Add</button>
+    <input id="qtyInput" type="number" placeholder="Qty" min="1">
+  </div>
 
-    <br><br>
+  <select id="catInput">
+    <option value="">Category</option>
+    <option>Dairy</option>
+    <option>Produce</option>
+    <option>Meat</option>
+    <option>Canned</option>
+    <option>Bread</option>
+  </select>
 
+  <input id="expInput" type="date">
+
+  <button onclick="addItem()">Add</button>
+
+  <div class="button-row">
     <button onclick="sortAlpha()">Sort A→Z</button>
     <button onclick="sortCat()">Sort by Category</button>
+  </div>
 
-    <input id="searchInput" placeholder="Search..." oninput="render()">
-
-    <h2>🛒 Shopping List</h2>
-    <ul id="shoppingList"></ul>
-
-    <h2>🥫 Pantry</h2>
-    <ul id="pantryList"></ul>
+  <input id="searchInput" placeholder="Search..." oninput="render()">
 
 
-    <script>
-      // ===== CONFIG =====
-      const API_BASE = "https://pantry-api-74qw.onrender.com";
-      const HOUSEHOLD_KEY = "home";   // pick anything; same key = shared data
+  <h2>🛒 Shopping List</h2>
+  <ul id="shoppingList"></ul>
 
-      let items = [];
+  <h2>🥫 Pantry</h2>
+  <ul id="pantryList"></ul>
 
-      // ---- API HELPERS ----
-      function toPayload(x) {
-        return {
-          household: HOUSEHOLD_KEY,
-          name: x.name,
-          qty: x.qty,
-          cat: x.cat || "",
-          exp: x.exp || null,
-          done: !!x.done,
-          location: x.location
-        };
+
+  <script>
+    // ===== CONFIG =====
+    const API_BASE = "https://pantry-api-74qw.onrender.com";   // cloud backend
+    const HOUSEHOLD_KEY = "home";   // shared family group
+
+    let items = [];
+
+    // ---- API HELPERS ----
+    function toPayload(x) {
+      return {
+        household: HOUSEHOLD_KEY,
+        name: x.name,
+        qty: x.qty,
+        cat: x.cat || "",
+        exp: x.exp || null,
+        done: !!x.done,
+        location: x.location
+      };
+    }
+
+    async function apiGet() {
+      const res = await fetch(`${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}`);
+      if (!res.ok) throw new Error("GET failed");
+      return await res.json();
+    }
+
+    async function apiCreate(x) {
+      const res = await fetch(`${API_BASE}/items`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(toPayload(x))
+      });
+      if (!res.ok) throw new Error("POST failed");
+      return await res.json();
+    }
+
+    async function apiUpdate(x) {
+      const res = await fetch(`${API_BASE}/items/${x.id}`, {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(toPayload(x))
+      });
+      if (!res.ok) throw new Error("PUT failed");
+      return await res.json();
+    }
+
+    async function apiDelete(id) {
+      const res = await fetch(
+        `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("DELETE failed");
+      return await res.json();
+    }
+
+    // ---- LOAD ITEMS ----
+    async function loadItems() {
+      try {
+        items = await apiGet();
+        localStorage.setItem("cache_items", JSON.stringify(items));
+      } catch (e) {
+        items = JSON.parse(localStorage.getItem("cache_items") || "[]");
       }
+      render();
+    }
 
-      async function apiGet() {
-        const res = await fetch(`${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}`);
-        if (!res.ok) throw new Error("GET failed");
-        return await res.json();
-      }
+    // ---- ACTIONS ----
+    async function addItem() {
+      const name = document.getElementById('itemInput').value.trim();
+      const qty  = document.getElementById('qtyInput').value.trim();
+      const cat  = document.getElementById('catInput').value.trim();
+      const exp  = document.getElementById('expInput').value.trim();
 
-      async function apiCreate(x) {
-        const res = await fetch(`${API_BASE}/items`, {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify(toPayload(x))
-        });
-        if (!res.ok) throw new Error("POST failed");
-        return await res.json();
-      }
+      if (!name || !qty) return;
 
-      async function apiUpdate(x) {
-        const res = await fetch(`${API_BASE}/items/${x.id}`, {
-          method: "PUT",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify(toPayload(x))
-        });
-        if (!res.ok) throw new Error("PUT failed");
-        return await res.json();
-      }
+      const created = await apiCreate({ name, qty, cat, exp, done:false, location:"shopping" });
+      items.push(created);
+      localStorage.setItem("cache_items", JSON.stringify(items));
+      clearForm();
+      render();
+    }
 
-      async function apiDelete(id) {
-        const res = await fetch(
-          `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`,
-          { method: "DELETE" }
-        );
-        if (!res.ok) throw new Error("DELETE failed");
-        return await res.json();
-      }
+    function clearForm() {
+      document.getElementById('itemInput').value = "";
+      document.getElementById('qtyInput').value = "";
+      document.getElementById('catInput').value = "";
+      document.getElementById('expInput').value = "";
+    }
 
-      // ---- LOAD ITEMS ----
-      async function loadItems() {
-        try {
-          items = await apiGet();
-          localStorage.setItem("cache_items", JSON.stringify(items));
-        } catch (e) {
-          items = JSON.parse(localStorage.getItem("cache_items") || "[]");
+    async function toggleDone(idx) {
+      const x = items[idx];
+      x.done = !x.done;
+      const updated = await apiUpdate(x);
+      items[idx] = updated;
+      localStorage.setItem("cache_items", JSON.stringify(items));
+      render();
+    }
+
+    async function moveItem(idx) {
+      const x = items[idx];
+      x.location = (x.location === "shopping") ? "pantry" : "shopping";
+      const updated = await apiUpdate(x);
+      items[idx] = updated;
+      localStorage.setItem("cache_items", JSON.stringify(items));
+      render();
+    }
+
+    async function editItem(idx) {
+      const x = items[idx];
+      const name = prompt("Name:", x.name);
+      if (name === null) return;
+      const qty  = prompt("Qty:", x.qty);
+      if (qty === null) return;
+      const cat  = prompt("Category:", x.cat || "");
+      if (cat === null) return;
+      const exp  = prompt("Expiration (YYYY-MM-DD):", x.exp || "");
+      if (exp === null) return;
+
+      Object.assign(x, { name, qty, cat, exp });
+      const updated = await apiUpdate(x);
+      items[idx] = updated;
+      localStorage.setItem("cache_items", JSON.stringify(items));
+      render();
+    }
+
+    async function deleteItem(idx) {
+      const id = items[idx].id;
+      await apiDelete(id);
+      items.splice(idx, 1);
+      localStorage.setItem("cache_items", JSON.stringify(items));
+      render();
+    }
+
+    function sortAlpha() {
+      items.sort((a, b) => a.name.localeCompare(b.name));
+      render();
+    }
+
+    function sortCat() {
+      items.sort((a, b) => (a.cat || "").localeCompare(b.cat || ""));
+      render();
+    }
+
+    // ---- RENDER ----
+    function render() {
+      const sUL = document.getElementById('shoppingList');
+      const pUL = document.getElementById('pantryList');
+      const search = (document.getElementById('searchInput')?.value || "").toLowerCase();
+
+      sUL.innerHTML = '';
+      pUL.innerHTML = '';
+
+      items.forEach((item, index) => {
+        if (search && !item.name.toLowerCase().includes(search)) return;
+
+        const li = document.createElement('li');
+
+        const left = document.createElement('div');
+        left.style.display = "flex";
+        left.style.alignItems = "center";
+        left.style.flex = "1";
+
+        const chk = document.createElement('input');
+        chk.type = "checkbox";
+        chk.checked = item.done;
+        chk.onchange = () => toggleDone(index);
+
+        const info = document.createElement('div');
+        info.className = "info";
+        const expText = item.exp ? ` — ${item.exp}` : "";
+        info.textContent = `${item.name} — ${item.qty} — ${item.cat || ""}${expText}`;
+        if (item.done) info.classList.add("done");
+
+        left.appendChild(chk);
+        left.appendChild(info);
+
+        const moveBtn = document.createElement('button');
+        moveBtn.textContent = (item.location === "shopping") ? "➡ Pantry" : "⬅ Shopping";
+        moveBtn.onclick = () => moveItem(index);
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = "Edit";
+        editBtn.onclick = () => editItem(index);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = "X";
+        delBtn.onclick = () => deleteItem(index);
+
+        li.appendChild(left);
+        li.appendChild(moveBtn);
+        li.appendChild(editBtn);
+        li.appendChild(delBtn);
+
+        if (item.location === "shopping") {
+          sUL.appendChild(li);
+        } else {
+          pUL.appendChild(li);
         }
-        render();
-      }
+      });
+    }
 
-      // ---- ACTIONS ----
-      async function addItem() {
-        const name = document.getElementById('itemInput').value.trim();
-        const qty  = document.getElementById('qtyInput').value.trim();
-        const cat  = document.getElementById('catInput').value.trim();
-        const exp  = document.getElementById('expInput').value.trim();
-
-        if (!name || !qty) return;
-
-        const created = await apiCreate({ name, qty, cat, exp, done:false, location:"shopping" });
-        items.push(created);
-        localStorage.setItem("cache_items", JSON.stringify(items));
-        clearForm();
-        render();
-      }
-
-      function clearForm() {
-        document.getElementById('itemInput').value = "";
-        document.getElementById('qtyInput').value = "";
-        document.getElementById('catInput').value = "";
-        document.getElementById('expInput').value = "";
-      }
-
-      async function toggleDone(idx) {
-        const x = items[idx];
-        x.done = !x.done;
-        const updated = await apiUpdate(x);
-        items[idx] = updated;
-        localStorage.setItem("cache_items", JSON.stringify(items));
-        render();
-      }
-
-      async function moveItem(idx) {
-        const x = items[idx];
-        x.location = (x.location === "shopping") ? "pantry" : "shopping";
-        const updated = await apiUpdate(x);
-        items[idx] = updated;
-        localStorage.setItem("cache_items", JSON.stringify(items));
-        render();
-      }
-
-      async function editItem(idx) {
-        const x = items[idx];
-        const name = prompt("Name:", x.name);
-        if (name === null) return;
-        const qty  = prompt("Qty:", x.qty);
-        if (qty === null) return;
-        const cat  = prompt("Category:", x.cat || "");
-        if (cat === null) return;
-        const exp  = prompt("Expiration (YYYY-MM-DD):", x.exp || "");
-        if (exp === null) return;
-
-        Object.assign(x, { name, qty, cat, exp });
-        const updated = await apiUpdate(x);
-        items[idx] = updated;
-        localStorage.setItem("cache_items", JSON.stringify(items));
-        render();
-      }
-
-      async function deleteItem(idx) {
-        const id = items[idx].id;
-        await apiDelete(id);
-        items.splice(idx, 1);
-        localStorage.setItem("cache_items", JSON.stringify(items));
-        render();
-      }
-
-      function sortAlpha() {
-        items.sort((a, b) => a.name.localeCompare(b.name));
-        render();
-      }
-
-      function sortCat() {
-        items.sort((a, b) => (a.cat || "").localeCompare(b.cat || ""));
-        render();
-      }
-
-      // ---- RENDER ----
-      function render() {
-        const sUL = document.getElementById('shoppingList');
-        const pUL = document.getElementById('pantryList');
-        const search = (document.getElementById('searchInput')?.value || "").toLowerCase();
-
-        sUL.innerHTML = '';
-        pUL.innerHTML = '';
-
-        items.forEach((item, index) => {
-          if (search && !item.name.toLowerCase().includes(search)) return;
-
-          const li = document.createElement('li');
-
-          const left = document.createElement('div');
-          left.style.display = "flex";
-          left.style.alignItems = "center";
-
-          const chk = document.createElement('input');
-          chk.type = "checkbox";
-          chk.checked = item.done;
-          chk.onchange = () => toggleDone(index);
-
-          const info = document.createElement('div');
-          info.className = "info";
-          const expText = item.exp ? ` — ${item.exp}` : "";
-          info.textContent = `${item.name} — ${item.qty} — ${item.cat || ""}${expText}`;
-          if (item.done) info.classList.add("done");
-
-          left.appendChild(chk);
-          left.appendChild(info);
-
-          const moveBtn = document.createElement('button');
-          moveBtn.textContent = (item.location === "shopping") ? "Buy → Pantry" : "Use → Shopping";
-          moveBtn.onclick = () => moveItem(index);
-
-          const editBtn = document.createElement('button');
-          editBtn.textContent = "Edit";
-          editBtn.onclick = () => editItem(index);
-
-          const delBtn = document.createElement('button');
-          delBtn.textContent = "Delete";
-          delBtn.onclick = () => deleteItem(index);
-
-          li.appendChild(left);
-          li.appendChild(moveBtn);
-          li.appendChild(editBtn);
-          li.appendChild(delBtn);
-
-          if (item.location === "shopping") {
-            sUL.appendChild(li);
-          } else {
-            pUL.appendChild(li);
-          }
-        });
-      }
-
-      // ---- START ----
-      window.addEventListener('load', loadItems);
-    </script>
-  </body>
+    // ---- START ----
+    window.addEventListener('load', loadItems);
+  </script>
+</body>
 </html>
+
 
 
 
