@@ -98,7 +98,11 @@
 </head>
 
 <body>
+
+  <!-- theme + refresh -->
   <button onclick="toggleTheme()" style="float:right;">🌓 Theme</button>
+  <button onclick="manualRefresh()" style="float:right; margin-right:10px;">🔄 Refresh</button>
+
   <h1>My Pantry Tracker</h1>
 
   <h2>Add Item</h2>
@@ -209,7 +213,7 @@
 
 
   /* =======================
-      LOAD
+      LOAD + REFRESH
   ======================== */
   async function loadItems() {
     try {
@@ -220,6 +224,17 @@
     }
     render();
   }
+
+  // manual refresh button
+  async function manualRefresh() {
+    await loadItems();
+  }
+
+  // auto-refresh every 10 seconds
+  setInterval(loadItems, 10_000);
+
+  // refresh when internet comes back
+  window.addEventListener("online", loadItems);
 
 
   /* =======================
@@ -371,6 +386,7 @@
 
 </body>
 </html>
+
 
 
 
