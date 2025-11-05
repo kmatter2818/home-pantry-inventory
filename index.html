@@ -17,19 +17,22 @@
       }
       .info {
         flex: 1;
+        margin-left: 8px;
       }
       .done {
         text-decoration: line-through;
         color: gray;
       }
+      h2 { margin-top: 2rem; }
     </style>
   </head>
   <body>
-    <h1>Shopping List</h1>
+    <h1>My Pantry Tracker</h1>
+
+    <h2>Add Item</h2>
 
     <input id="itemInput" type="text" placeholder="Item">
     <input id="qtyInput" type="number" placeholder="Qty" min="1" style="width:60px">
-
     <select id="catInput">
       <option value="">Category</option>
       <option>Dairy</option>
@@ -38,9 +41,7 @@
       <option>Canned</option>
       <option>Bread</option>
     </select>
-
     <input id="expInput" type="date">
-
     <button onclick="addItem()">Add</button>
 
     <br><br>
@@ -50,18 +51,31 @@
 
     <input id="searchInput" placeholder="Search..." oninput="render()">
 
+    <!-- ================= -->
+    <!-- SHOPPING LIST     -->
+    <!-- ================= -->
+    <h2>🛒 Shopping List</h2>
     <ul id="shoppingList"></ul>
 
+    <!-- ================= -->
+    <!-- PANTRY LIST       -->
+    <!-- ================= -->
+    <h2>🥫 Pantry</h2>
+    <ul id="pantryList"></ul>
+
+
     <script>
-      let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
+      let items = JSON.parse(localStorage.getItem('shoppingListData')) || [];
 
       function saveItems() {
-        localStorage.setItem('shoppingList', JSON.stringify(items));
+        localStorage.setItem('shoppingListData', JSON.stringify(items));
       }
 
       function render() {
-        const ul = document.getElementById('shoppingList');
-        ul.innerHTML = '';
+        const sUL = document.getElementById('shoppingList');
+        const pUL = document.getElementById('pantryList');
+        sUL.innerHTML = '';
+        pUL.innerHTML = '';
 
         const search = document.getElementById('searchInput').value.toLowerCase();
 
@@ -74,7 +88,6 @@
           left.style.display = "flex";
           left.style.alignItems = "center";
 
-          // checkbox
           const chk = document.createElement('input');
           chk.type = "checkbox";
           chk.checked = item.done;
@@ -92,6 +105,17 @@
           left.appendChild(chk);
           left.appendChild(info);
 
+          // Move button
+          const moveBtn = document.createElement('button');
+          moveBtn.textContent = (item.location === "shopping")
+                                ? "Buy → Pantry"
+                                : "Use → Shopping";
+          moveBtn.onclick = () => {
+            item.location = (item.location === "shopping") ? "pantry" : "shopping";
+            saveItems();
+            render();
+          };
+
           // Edit button
           const editBtn = document.createElement('button');
           editBtn.textContent = "Edit";
@@ -107,10 +131,12 @@
           };
 
           li.appendChild(left);
+          li.appendChild(moveBtn);
           li.appendChild(editBtn);
           li.appendChild(delBtn);
 
-          ul.appendChild(li);
+          if (item.location === "shopping") sUL.appendChild(li);
+          else pUL.appendChild(li);
         });
       }
 
@@ -122,7 +148,7 @@
 
         if (!name || !qty) return;
 
-        items.push({ name, qty, cat, exp, done:false });
+        items.push({ name, qty, cat, exp, done:false, location:"shopping" });
         saveItems();
         render();
 
@@ -160,5 +186,6 @@
     </script>
   </body>
 </html>
+
 
 
