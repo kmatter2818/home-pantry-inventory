@@ -5,12 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --border: #cccccc;
+      --item-bg: #ffffff;
+      --button-bg: #f0f0f0;
+      --button-text: #000000;
+    }
+
+    /* DARK THEME VARIABLES */
+    .dark {
+      --bg: #1e1e1e;
+      --text: #e8e8e8;
+      --border: #555;
+      --item-bg: #2a2a2a;
+      --button-bg: #333;
+      --button-text: #e8e8e8;
+    }
+
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
     }
 
     h1, h2 {
@@ -21,6 +43,9 @@
       padding: 6px;
       margin: 4px;
       font-size: 1rem;
+      background: var(--item-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
 
     button {
@@ -29,6 +54,9 @@
       font-size: 0.9rem;
       border-radius: 4px;
       cursor: pointer;
+      background: var(--button-bg);
+      color: var(--button-text);
+      border: 1px solid var(--border);
     }
 
     ul {
@@ -37,12 +65,13 @@
 
     li {
       list-style: none;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid var(--border);
       padding: 6px 0;
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+      background: var(--item-bg);
     }
 
     .info {
@@ -68,6 +97,7 @@
 </head>
 
 <body>
+  <button onclick="toggleTheme()" style="float:right;">🌓 Theme</button>
   <h1>My Pantry Tracker</h1>
 
   <h2>Add Item</h2>
@@ -106,6 +136,33 @@
   const HOUSEHOLD_KEY = "home";   // shared group id
 
   let items = [];
+
+  /* ================================
+        THEME
+     ================================ */
+
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+  }
+
+  function toggleTheme() {
+    const curr = localStorage.getItem("theme") || "light";
+    const next = curr === "light" ? "dark" : "light";
+    localStorage.setItem("theme", next);
+    applyTheme(next);
+  }
+
+  // On load, apply saved theme
+  applyTheme(localStorage.getItem("theme") || "light");
+
+
+  /* ================================
+       API HELPERS
+     ================================ */
 
   function toPayload(x) {
     return {
@@ -154,6 +211,11 @@
     return await res.json();
   }
 
+
+  /* ================================
+       LOAD ITEMS
+     ================================ */
+
   async function loadItems() {
     try {
       items = await apiGet();
@@ -163,6 +225,11 @@
     }
     render();
   }
+
+
+  /* ================================
+       MAIN ACTIONS
+     ================================ */
 
   async function addItem() {
     const name = document.getElementById('itemInput').value.trim();
@@ -240,6 +307,11 @@
     render();
   }
 
+
+  /* ================================
+       RENDER
+     ================================ */
+
   function render() {
     const sUL = document.getElementById('shoppingList');
     const pUL = document.getElementById('pantryList');
@@ -295,6 +367,7 @@
 
 </body>
 </html>
+
 
 
 
