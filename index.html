@@ -33,6 +33,7 @@
       color: var(--text);
       transition: background 0.3s, color 0.3s;
       padding-bottom: 70px; /* space for tab bar */
+      overflow-x: hidden;
     }
 
     h1 {
@@ -53,21 +54,22 @@
     }
 
     input, select {
-      padding: 6px;
+      padding: 8px;
       margin: 4px;
       font-size: 1rem;
       background: var(--item-bg);
       color: var(--text);
       border: 1px solid var(--border);
+      border-radius: 6px;
       width: 90%;
-      max-width: 300px;
+      max-width: 320px;
     }
 
     button {
       padding: 6px 10px;
       margin: 4px;
       font-size: 0.9rem;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       background: var(--button-bg);
       color: var(--button-text);
@@ -118,16 +120,26 @@
       color: var(--button-text);
       border: none;
       border-right: 1px solid var(--border);
-      font-size: 1rem;
+      font-size: 1.5rem;
+      transition: transform 0.2s;
     }
 
     #tabBar button:last-child {
       border-right: none;
     }
 
+    #tabBar button.active {
+      background: var(--text);
+      color: var(--bg);
+      transform: scale(1.15);
+      font-weight: bold;
+    }
+
     /* Screen containers */
     .screen {
       display: none;
+      transition: transform 0.25s ease;
+      padding-bottom: 60px;
     }
 
     .screen.active {
@@ -179,6 +191,7 @@
 
     <input id="itemInput" type="text" placeholder="Item">
     <input id="qtyInput" type="number" placeholder="Qty" min="1">
+
     <select id="catInput">
       <option value="">Category</option>
       <option>Dairy</option>
@@ -188,6 +201,12 @@
       <option>Bread</option>
     </select>
 
+    <!-- Location for future list expansion -->
+    <select id="destInput">
+      <option value="shopping">Add → Shopping</option>
+      <option value="pantry">Add → Pantry</option>
+    </select>
+
     <br>
     <button onclick="addItem()">Add</button>
   </div>
@@ -195,7 +214,7 @@
 
   <!-- ✅ TABS -->
   <div id="tabBar">
-    <button onclick="showScreen('shopping')">🛒</button>
+    <button onclick="showScreen('shopping')" class="active">🛒</button>
     <button onclick="showScreen('pantry')">🏠</button>
     <button onclick="showScreen('add')">➕</button>
   </div>
@@ -218,7 +237,40 @@
       document.getElementById(`screen-${s}`).classList.remove("active");
     });
     document.getElementById(`screen-${scr}`).classList.add("active");
+
+    const btns = document.querySelectorAll("#tabBar button");
+    btns.forEach(btn => btn.classList.remove("active"));
+
+    if (scr === "shopping")  btns[0].classList.add("active");
+    if (scr === "pantry")    btns[1].classList.add("active");
+    if (scr === "add")       btns[2].classList.add("active");
   }
+
+
+  /* =======================
+      SWIPE
+  ======================== */
+  let touchStartX = 0;
+
+  document.addEventListener("touchstart", function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  document.addEventListener("touchend", function(e) {
+    let diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) < 60) return;
+
+    let current = document.querySelector(".screen.active").id.replace("screen-", "");
+    const ordered = ["shopping", "pantry", "add"];
+    let i = ordered.indexOf(current);
+
+    if (diff < 0 && i < ordered.length - 1) {
+      showScreen(ordered[i+1]); // left swipe → next
+    }
+    if (diff > 0 && i > 0) {
+      showScreen(ordered[i-1]); // right swipe → previous
+    }
+  });
 
 
   /* =======================
@@ -313,9 +365,11 @@
     const name = itemInput.value.trim();
     const qty  = qtyInput.value.trim();
     const cat  = catInput.value.trim();
+    const dest = destInput.value;
+
     if (!name || !qty) return;
 
-    const created = await apiCreate({ name, qty, cat, exp:null, done:false, location:"shopping" });
+    const created = await apiCreate({ name, qty, cat, exp:null, done:false, location:dest });
     items.push(created);
     localStorage.setItem("cache_items", JSON.stringify(items));
     clearForm();
@@ -327,6 +381,7 @@
     itemInput.value = "";
     qtyInput.value = "";
     catInput.value = "";
+    destInput.value = "shopping";
   }
 
   async function toggleDone(idx) {
@@ -460,6 +515,7 @@
 
 </body>
 </html>
+
 
 
 
