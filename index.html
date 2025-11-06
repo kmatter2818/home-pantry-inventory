@@ -32,7 +32,7 @@
       background: var(--bg);
       color: var(--text);
       transition: background 0.3s, color 0.3s;
-      padding-bottom: 70px; /* space for tab bar */
+      padding-bottom: 70px;
       overflow-x: hidden;
     }
 
@@ -45,7 +45,6 @@
       text-align: center;
     }
 
-    /* Header buttons */
     #topButtons {
       display: flex;
       justify-content: center;
@@ -76,7 +75,9 @@
       border: 1px solid var(--border);
     }
 
-    ul { padding-left: 0; }
+    ul {
+      padding-left: 0;
+    }
 
     li {
       list-style: none;
@@ -97,6 +98,26 @@
     .done {
       text-decoration: line-through;
       color: gray;
+    }
+
+    /* ✅ Category Pills */
+    .pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .pill {
+      background: #eef2ff;
+      color: #3730a3;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .dark .pill {
+      background: #1f2937;
+      color: #c7d2fe;
     }
 
     /* bottom tabs */
@@ -133,10 +154,8 @@
       font-weight: bold;
     }
 
-    /* Screen containers */
     .screen {
       display: none;
-      transition: transform 0.25s ease;
       padding-bottom: 60px;
     }
 
@@ -165,7 +184,6 @@
 
   <!-- ✅ SCREENS -->
 
-  <!-- SHOPPING SCREEN -->
   <div id="screen-shopping" class="screen active">
     <h2>Shopping List</h2>
     <input id="searchInput" placeholder="Search..." oninput="render()">
@@ -174,7 +192,6 @@
     <ul id="shoppingList"></ul>
   </div>
 
-  <!-- PANTRY SCREEN -->
   <div id="screen-pantry" class="screen">
     <h2>Pantry</h2>
     <input id="searchInputPantry" placeholder="Search..." oninput="render()">
@@ -183,7 +200,6 @@
     <ul id="pantryList"></ul>
   </div>
 
-  <!-- ADD ITEM SCREEN -->
   <div id="screen-add" class="screen">
     <h2>Add Item</h2>
 
@@ -199,7 +215,6 @@
       <option>Bread</option>
     </select>
 
-    <!-- Location for future lists -->
     <select id="destInput">
       <option value="shopping">Add → Shopping</option>
       <option value="pantry">Add → Pantry</option>
@@ -208,7 +223,6 @@
     <br>
     <button onclick="addItem()">Add</button>
   </div>
-
 
   <!-- ✅ TABS -->
   <div id="tabBar">
@@ -219,17 +233,12 @@
 
 
 <script>
-  /* =======================
-      API CONFIG
-  ======================== */
   const API_BASE = "https://pantry-api-74qw.onrender.com";
   const HOUSEHOLD_KEY = "home";
   let items = [];
 
 
-  /* =======================
-      SCREEN NAVIGATION
-  ======================== */
+  /* ========= SCREEN NAV ========= */
   function showScreen(scr) {
     ["shopping", "pantry", "add"].forEach(s => {
       document.getElementById(`screen-${s}`).classList.remove("active");
@@ -245,9 +254,7 @@
   }
 
 
-  /* =======================
-      SWIPE CONTROL
-  ======================== */
+  /* ========= SWIPE ========= */
   let touchStartX = 0;
   document.addEventListener("touchstart", e => {
     touchStartX = e.changedTouches[0].screenX;
@@ -266,9 +273,7 @@
   });
 
 
-  /* =======================
-      THEME
-  ======================== */
+  /* ========= THEME ========= */
   function applyTheme(theme) {
     if (theme === "dark") document.body.classList.add("dark");
     else document.body.classList.remove("dark");
@@ -284,11 +289,8 @@
   applyTheme(localStorage.getItem("theme") || "light");
 
 
-  /* =======================
-      API HELPERS
-  ======================== */
+  /* ========= API HELPERS ========= */
 
-  // ✅ Proper fresh fetch
   async function apiGet() {
     const res = await fetch(
       `${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}&_=${Date.now()}`,
@@ -332,14 +334,12 @@
   async function apiDelete(id) {
     await fetch(
       `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}&_=${Date.now()}`,
-      { method: "DELETE", cache:"no-store", headers:{ "Cache-Control":"no-cache"} }
+      { method:"DELETE", cache:"no-store", headers:{ "Cache-Control":"no-cache"} }
     );
   }
 
 
-  /* =======================
-      LOAD / REFRESH
-  ======================== */
+  /* ========= LOAD ========= */
   async function loadItems() {
     try {
       items = await apiGet();
@@ -358,9 +358,7 @@
   window.addEventListener("online", loadItems);
 
 
-  /* =======================
-      ADD ITEM  ✅ FIXED
-  ======================== */
+  /* ========= ADD ITEM ========= */
   async function addItem() {
     const name = itemInput.value.trim();
     const qty  = qtyInput.value.trim();
@@ -371,13 +369,10 @@
 
     await apiCreate({ name, qty, cat, exp:null, done:false, location:dest });
 
-    // ✅ ALWAYS reload from DB to stay consistent
     await loadItems();
-
     clearForm();
     showScreen("shopping");
   }
-
 
   function clearForm() {
     itemInput.value = "";
@@ -387,9 +382,7 @@
   }
 
 
-  /* =======================
-      ITEM ACTIONS
-  ======================== */
+  /* ========= ITEM ACTIONS ========= */
   async function toggleDone(idx) {
     const x = items[idx];
     x.done = !x.done;
@@ -434,7 +427,6 @@
     render();
   }
 
-
   function sortAlpha() {
     items.sort((a, b) => a.name.localeCompare(b.name));
     render();
@@ -446,9 +438,16 @@
   }
 
 
-  /* =======================
-      RENDER
-  ======================== */
+  /* ========= RENDER ========= */
+
+  function makePill(text) {
+    if (!text) return null;
+    const span = document.createElement("span");
+    span.className = "pill";
+    span.textContent = text;
+    return span;
+  }
+
   function render() {
     shoppingList.innerHTML = "";
     pantryList.innerHTML = "";
@@ -459,7 +458,6 @@
     items.forEach((item, index) => {
 
       const loc = (item.location || "").toLowerCase();
-
       const li = document.createElement("li");
 
       const chk = document.createElement("input");
@@ -470,9 +468,19 @@
       const info = document.createElement("div");
       info.className = "info";
 
-      let expText = item.exp ? ` — ${item.exp}` : "";
-      info.textContent = `${item.name} — ${item.qty} — ${item.cat||""}${expText}`;
-      if (item.done) info.classList.add("done");
+      const top = document.createElement("div");
+      const expText = item.exp ? ` — ${item.exp}` : "";
+      top.textContent = `${item.name} — ${item.qty} — ${item.cat||""}${expText}`;
+      if (item.done) top.classList.add("done");
+
+      const pills = document.createElement("div");
+      pills.className = "pills";
+      if (item.cat) pills.appendChild(makePill(item.cat));
+      if (item.exp) pills.appendChild(makePill(`Exp ${item.exp}`));
+      pills.appendChild(makePill(loc === "shopping" ? "Shopping" : "Pantry"));
+
+      info.appendChild(top);
+      info.appendChild(pills);
 
       const moveBtn = document.createElement("button");
       moveBtn.textContent = (loc === "shopping") ? "➡" : "⬅";
@@ -500,7 +508,6 @@
     });
   }
 
-
   window.addEventListener("load", loadItems);
 </script>
 
@@ -519,6 +526,7 @@
 
 </body>
 </html>
+
 
 
 
