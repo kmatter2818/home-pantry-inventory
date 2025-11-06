@@ -1,1 +1,1 @@
-This project will help me keep track of food in my pantry.
+This project is a web app that keeps track of household inventory
