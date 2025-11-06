@@ -28,17 +28,28 @@
 
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0;
       background: var(--bg);
       color: var(--text);
       transition: background 0.3s, color 0.3s;
+      padding-bottom: 70px; /* space for tab bar */
     }
 
-    h1, h2 {
+    h1 {
       text-align: center;
+      margin: 12px 0 6px 0;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    /* Header buttons */
+    #topButtons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 6px 0;
     }
 
     input, select {
@@ -48,6 +59,8 @@
       background: var(--item-bg);
       color: var(--text);
       border: 1px solid var(--border);
+      width: 90%;
+      max-width: 300px;
     }
 
     button {
@@ -74,6 +87,7 @@
       gap: 8px;
       flex-wrap: wrap;
       background: var(--item-bg);
+      margin: 0 12px;
     }
 
     .info {
@@ -85,53 +99,106 @@
       color: gray;
     }
 
+    /* bottom tabs */
+    #tabBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      background: var(--item-bg);
+      border-top: 1px solid var(--border);
+    }
+
+    #tabBar button {
+      flex: 1;
+      padding: 12px;
+      margin: 0;
+      background: var(--button-bg);
+      color: var(--button-text);
+      border: none;
+      border-right: 1px solid var(--border);
+      font-size: 1rem;
+    }
+
+    #tabBar button:last-child {
+      border-right: none;
+    }
+
+    /* Screen containers */
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
     @media (max-width: 600px) {
-      li {
-        gap: 4px;
-      }
       button {
         padding: 4px 6px;
         font-size: 0.8rem;
       }
+      li { gap: 4px; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- theme + refresh -->
-  <button onclick="toggleTheme()" style="float:right;">🌓 Theme</button>
-  <button onclick="manualRefresh()" style="float:right; margin-right:10px;">🔄 Refresh</button>
-
   <h1>My Pantry Tracker</h1>
 
-  <h2>Add Item</h2>
+  <div id="topButtons">
+    <button onclick="manualRefresh()">🔄</button>
+    <button onclick="toggleTheme()">🌓</button>
+  </div>
 
-  <input id="itemInput" type="text" placeholder="Item">
-  <input id="qtyInput" type="number" placeholder="Qty" min="1">
-  <select id="catInput">
-    <option value="">Category</option>
-    <option>Dairy</option>
-    <option>Produce</option>
-    <option>Meat</option>
-    <option>Canned</option>
-    <option>Bread</option>
-  </select>
+  <!-- ✅ SCREENS -->
 
-  <button onclick="addItem()">Add</button>
+  <!-- SHOPPING SCREEN -->
+  <div id="screen-shopping" class="screen active">
+    <h2>Shopping List</h2>
+    <input id="searchInput" placeholder="Search..." oninput="render()">
+    <button onclick="sortAlpha()">Sort A→Z</button>
+    <button onclick="sortCat()">Sort by Category</button>
+    <ul id="shoppingList"></ul>
+  </div>
 
-  <br>
-  <button onclick="sortAlpha()">Sort A→Z</button>
-  <button onclick="sortCat()">Sort by Category</button>
+  <!-- PANTRY SCREEN -->
+  <div id="screen-pantry" class="screen">
+    <h2>Pantry</h2>
+    <input id="searchInputPantry" placeholder="Search..." oninput="render()">
+    <button onclick="sortAlpha()">Sort A→Z</button>
+    <button onclick="sortCat()">Sort by Category</button>
+    <ul id="pantryList"></ul>
+  </div>
 
-  <br>
-  <input id="searchInput" placeholder="Search..." oninput="render()">
+  <!-- ADD ITEM SCREEN -->
+  <div id="screen-add" class="screen">
+    <h2>Add Item</h2>
 
-  <h2>Shopping List</h2>
-  <ul id="shoppingList"></ul>
+    <input id="itemInput" type="text" placeholder="Item">
+    <input id="qtyInput" type="number" placeholder="Qty" min="1">
+    <select id="catInput">
+      <option value="">Category</option>
+      <option>Dairy</option>
+      <option>Produce</option>
+      <option>Meat</option>
+      <option>Canned</option>
+      <option>Bread</option>
+    </select>
 
-  <h2>Pantry</h2>
-  <ul id="pantryList"></ul>
+    <br>
+    <button onclick="addItem()">Add</button>
+  </div>
+
+
+  <!-- ✅ TABS -->
+  <div id="tabBar">
+    <button onclick="showScreen('shopping')">🛒</button>
+    <button onclick="showScreen('pantry')">🏠</button>
+    <button onclick="showScreen('add')">➕</button>
+  </div>
 
 
 <script>
@@ -140,19 +207,26 @@
   ======================== */
   const API_BASE = "https://pantry-api-74qw.onrender.com";
   const HOUSEHOLD_KEY = "home";
-
   let items = [];
+
+
+  /* =======================
+      SCREEN NAVIGATION
+  ======================== */
+  function showScreen(scr) {
+    ["shopping", "pantry", "add"].forEach(s => {
+      document.getElementById(`screen-${s}`).classList.remove("active");
+    });
+    document.getElementById(`screen-${scr}`).classList.add("active");
+  }
 
 
   /* =======================
       THEME
   ======================== */
   function applyTheme(theme) {
-    if (theme === "dark") {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
+    if (theme === "dark") document.body.classList.add("dark");
+    else document.body.classList.remove("dark");
   }
 
   function toggleTheme() {
@@ -204,11 +278,10 @@
   }
 
   async function apiDelete(id) {
-    const res = await fetch(
+    await fetch(
       `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`,
       { method: "DELETE" }
     );
-    return await res.json();
   }
 
 
@@ -225,15 +298,11 @@
     render();
   }
 
-  // manual refresh button
   async function manualRefresh() {
     await loadItems();
   }
 
-  // auto-refresh every 10 seconds
   setInterval(loadItems, 10_000);
-
-  // refresh when internet comes back
   window.addEventListener("online", loadItems);
 
 
@@ -244,7 +313,6 @@
     const name = itemInput.value.trim();
     const qty  = qtyInput.value.trim();
     const cat  = catInput.value.trim();
-
     if (!name || !qty) return;
 
     const created = await apiCreate({ name, qty, cat, exp:null, done:false, location:"shopping" });
@@ -252,6 +320,7 @@
     localStorage.setItem("cache_items", JSON.stringify(items));
     clearForm();
     render();
+    showScreen("shopping");
   }
 
   function clearForm() {
@@ -271,7 +340,7 @@
 
   async function moveItem(idx) {
     const x = items[idx];
-    x.location = (x.location === "shopping") ? "pantry" : "shopping";
+    x.location = x.location === "shopping" ? "pantry" : "shopping";
     const updated = await apiUpdate(x);
     items[idx] = updated;
     localStorage.setItem("cache_items", JSON.stringify(items));
@@ -280,17 +349,18 @@
 
   async function editItem(idx) {
     const x = items[idx];
+
     const name = prompt("Name:", x.name);
-    if (name === null) return;
+    if (name===null) return;
 
     const qty  = prompt("Qty:", x.qty);
-    if (qty === null) return;
+    if (qty===null) return;
 
     const cat  = prompt("Category:", x.cat || "");
-    if (cat === null) return;
+    if (cat===null) return;
 
     const exp  = prompt("Expiration (YYYY-MM-DD):", x.exp || "");
-    if (exp === null) return;
+    if (exp===null) return;
 
     Object.assign(x, { name, qty, cat, exp });
     const updated = await apiUpdate(x);
@@ -300,9 +370,8 @@
   }
 
   async function deleteItem(idx) {
-    const id = items[idx].id;
-    await apiDelete(id);
-    items.splice(idx, 1);
+    await apiDelete(items[idx].id);
+    items.splice(idx,1);
     localStorage.setItem("cache_items", JSON.stringify(items));
     render();
   }
@@ -313,7 +382,7 @@
   }
 
   function sortCat() {
-    items.sort((a, b) => (a.cat || "").localeCompare(b.cat || ""));
+    items.sort((a, b) => (a.cat||"").localeCompare(b.cat||""));
     render();
   }
 
@@ -324,11 +393,11 @@
   function render() {
     shoppingList.innerHTML = "";
     pantryList.innerHTML = "";
-    const filter = searchInput.value?.toLowerCase() ?? "";
+
+    const filterShopping = (document.getElementById("searchInput").value || "").toLowerCase();
+    const filterPantry   = (document.getElementById("searchInputPantry").value || "").toLowerCase();
 
     items.forEach((item, index) => {
-      if (filter && !item.name.toLowerCase().includes(filter)) return;
-
       const li = document.createElement("li");
 
       const chk = document.createElement("input");
@@ -339,11 +408,11 @@
       const info = document.createElement("div");
       info.className = "info";
       const expText = item.exp ? ` — ${item.exp}` : "";
-      info.textContent = `${item.name} — ${item.qty} — ${item.cat || ""}${expText}`;
+      info.textContent = `${item.name} — ${item.qty} — ${item.cat||""}${expText}`;
       if (item.done) info.classList.add("done");
 
       const moveBtn = document.createElement("button");
-      moveBtn.textContent = item.location === "shopping" ? "➡ Pantry" : "⬅ Shopping";
+      moveBtn.textContent = item.location === "shopping" ? "➡" : "⬅";
       moveBtn.onclick = () => moveItem(index);
 
       const editBtn = document.createElement("button");
@@ -361,12 +430,17 @@
       li.appendChild(delBtn);
 
       if (item.location === "shopping") {
-        shoppingList.appendChild(li);
+        if (!filterShopping || item.name.toLowerCase().includes(filterShopping)) {
+          shoppingList.appendChild(li);
+        }
       } else {
-        pantryList.appendChild(li);
+        if (!filterPantry || item.name.toLowerCase().includes(filterPantry)) {
+          pantryList.appendChild(li);
+        }
       }
     });
   }
+
 
   window.addEventListener("load", loadItems);
 </script>
@@ -386,6 +460,7 @@
 
 </body>
 </html>
+
 
 
 
