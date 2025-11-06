@@ -3,12 +3,10 @@
 <head>
   <title>My Pantry Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- ✅ PWA manifest -->
   <link rel="manifest" href="./manifest.json">
 
   <style>
-    /* ========== THEME TOKENS ========== */
+    /* ===== THEME TOKENS ===== */
     :root {
       --bg: #ffffff;
       --surface: #f7f7f9;
@@ -34,39 +32,35 @@
       --shadow: 0 12px 40px rgba(0,0,0,.35);
     }
 
-    /* ========== BASE ========== */
+    /* ===== BASE ===== */
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
       color: var(--text);
       background: radial-gradient(1200px 800px at 50% -10%, var(--surface), var(--bg) 50%);
-      transition: background .3s, color .3s, filter .3s;
+      transition: background .3s, color .3s;
       padding-bottom: 88px; /* room for tab bar */
       overflow-x: hidden;
     }
 
-    /* ========== HEADER ========== */
+    /* ===== HEADER ===== */
     header {
-      position: sticky;
-      top: 0;
-      background: transparent;
-      backdrop-filter: blur(6px);
-      z-index: 5;
+      position: sticky; top: 0; z-index: 5;
       padding: 16px 16px 8px;
+      backdrop-filter: blur(6px);
+      background: transparent;
     }
     .title {
+      margin: 0 0 8px 0;
       text-align: center;
       font-weight: 800;
       letter-spacing: .3px;
       font-size: 22px;
-      margin: 0 0 8px 0;
     }
     .top-actions {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
+      display: flex; justify-content: center; gap: 10px;
     }
     .icon-btn {
       border: 1px solid var(--border);
@@ -76,34 +70,23 @@
       padding: 8px 12px;
       font-size: 16px;
       box-shadow: var(--shadow);
+      cursor: pointer;
     }
     .icon-btn:active { transform: translateY(1px); }
 
-    /* ========== SCREEN WRAPPER + ANIMATIONS ========== */
-    .screens {
-      position: relative;
-      width: 100%;
-      overflow: hidden;
-    }
+    /* ===== SCREENS + ANIMATIONS ===== */
+    .screens { position: relative; width: 100%; overflow: hidden; }
     .screen {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       padding: 6px 12px 84px;
       transform: translateX(100%);
       opacity: 0;
       transition: transform .28s ease, opacity .28s ease;
       will-change: transform, opacity;
     }
-    .screen.active {
-      transform: translateX(0%);
-      opacity: 1;
-      z-index: 2;
-    }
-    .screen.left {
-      transform: translateX(-100%);
-    }
+    .screen.active { transform: translateX(0%); opacity: 1; z-index: 2; }
 
-    /* ========== CONTENT STYLES ========== */
+    /* ===== CONTENT ===== */
     h2 {
       text-align: center;
       margin: 8px 0 12px;
@@ -112,11 +95,7 @@
       font-weight: 700;
     }
     .controls {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 6px 0 8px;
+      display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 8px;
     }
     input[type="text"], input[type="number"], select {
       padding: 10px 12px;
@@ -126,7 +105,6 @@
       color: var(--text);
       font-size: 16px;
       min-width: 140px;
-      box-shadow: inset 0 0 0 rgba(0,0,0,0);
       outline: none;
     }
     input::placeholder { color: var(--muted); }
@@ -163,6 +141,7 @@
     .info { flex: 1; }
     .name { font-weight: 700; }
     .muted { color: var(--muted); }
+    .done .name { text-decoration: line-through; opacity: .6; }
 
     /* Category pills */
     .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
@@ -175,9 +154,7 @@
       font-weight: 700;
     }
 
-    .done .name { text-decoration: line-through; opacity: .6; }
-
-    /* Small action buttons within list item */
+    /* Row action buttons */
     .row-btn {
       border: 1px solid var(--border);
       background: transparent;
@@ -186,29 +163,24 @@
       padding: 6px 8px;
       font-size: 14px;
       min-width: 36px;
+      cursor: pointer;
     }
 
-    /* ========== TAB BAR ========== */
+    /* ===== TAB BAR ===== */
     #tabBar {
-      position: fixed;
-      bottom: 0; left: 0; width: 100%;
-      display: flex;
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      display: flex; z-index: 10;
       backdrop-filter: blur(6px);
       border-top: 1px solid var(--border);
       background: color-mix(in oklab, var(--surface) 85%, transparent);
-      z-index: 10;
     }
     #tabBar button {
-      flex: 1;
-      padding: 14px 10px;
-      margin: 0;
-      background: transparent;
-      color: var(--text);
-      border: none;
-      border-right: 1px solid var(--border);
-      font-size: 20px;
-      font-weight: 700;
+      flex: 1; padding: 14px 10px; margin: 0;
+      background: transparent; color: var(--text);
+      border: none; border-right: 1px solid var(--border);
+      font-size: 20px; font-weight: 700;
       transition: transform .18s ease, background .18s ease, color .18s ease;
+      cursor: pointer;
     }
     #tabBar button:last-child { border-right: none; }
     #tabBar button.active {
@@ -218,22 +190,18 @@
       text-shadow: 0 1px 0 rgba(0,0,0,0.12);
     }
 
-    /* ========== FAB (quick add) ========== */
+    /* ===== FAB ===== */
     .fab {
-      position: fixed;
-      right: 18px; bottom: 96px;
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: var(--primary-contrast);
-      font-size: 28px;
-      border: none;
+      position: fixed; right: 18px; bottom: 96px;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--primary); color: var(--primary-contrast);
+      font-size: 28px; border: none;
       display: grid; place-items: center;
       box-shadow: var(--shadow);
-      z-index: 9;
+      z-index: 9; cursor: pointer;
     }
 
-    /* ========== BOTTOM SHEET ========== */
+    /* ===== BOTTOM SHEET ===== */
     .sheet-backdrop {
       position: fixed; inset: 0;
       background: rgba(0,0,0,.35);
@@ -244,11 +212,9 @@
     .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
 
     .sheet {
-      position: fixed;
-      left: 0; right: 0; bottom: -100%;
+      position: fixed; left: 0; right: 0; bottom: -100%;
       background: var(--bg);
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
+      border-top-left-radius: 20px; border-top-right-radius: 20px;
       box-shadow: var(--shadow);
       padding: 16px 16px 22px;
       transition: transform .26s ease;
@@ -258,23 +224,16 @@
     .sheet.open { transform: translateY(0%); bottom: 0; }
     .sheet .grabber {
       width: 46px; height: 5px; border-radius: 999px;
-      background: var(--border);
-      margin: 0 auto 12px;
+      background: var(--border); margin: 0 auto 12px;
     }
     .sheet h3 { text-align: center; margin: 4px 0 10px; }
 
     .sheet form {
-      display: grid;
-      grid-template-columns: 1fr 110px;
-      gap: 8px 10px;
-      align-items: center;
-      max-width: 560px;
-      margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 110px;
+      gap: 8px 10px; align-items: center; max-width: 560px; margin: 0 auto;
     }
     .sheet form .full { grid-column: 1 / -1; }
-    .sheet .actions {
-      display: flex; gap: 8px; justify-content: center; margin-top: 8px;
-    }
+    .sheet .actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
 
     @media (max-width: 600px) {
       .sheet form { grid-template-columns: 1fr 100px; }
@@ -282,7 +241,6 @@
     }
   </style>
 </head>
-
 <body>
 
   <!-- Header -->
@@ -294,7 +252,7 @@
     </div>
   </header>
 
-  <!-- Screens (animated) -->
+  <!-- Screens -->
   <main class="screens" id="screens">
     <!-- Shopping -->
     <section id="screen-shopping" class="screen active">
@@ -318,14 +276,14 @@
       <ul id="pantryList"></ul>
     </section>
 
-    <!-- (No visible Add screen; the ➕ tab and FAB open the bottom sheet) -->
+    <!-- (Add screen is handled by bottom sheet) -->
     <section id="screen-add" class="screen"></section>
   </main>
 
-  <!-- Floating Add Button -->
+  <!-- Floating Quick Add -->
   <button class="fab" onclick="openSheet()">+</button>
 
-  <!-- Bottom Sheet Add UI -->
+  <!-- Bottom Sheet -->
   <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet()"></div>
   <div class="sheet" id="sheet">
     <div class="grabber"></div>
@@ -363,13 +321,13 @@
   </nav>
 
 <script>
-  /* ========== CONFIG ========== */
+  /* ===== CONFIG ===== */
   const API_BASE = "https://pantry-api-74qw.onrender.com";
   const HOUSEHOLD_KEY = "home";
   let items = [];
-  let currentScreen = "shopping"; // for animation direction
+  let currentScreen = "shopping";
 
-  /* ========== THEME ========== */
+  /* ===== THEME ===== */
   function applyTheme(theme) {
     if (theme === "dark") document.body.classList.add("dark");
     else document.body.classList.remove("dark");
@@ -382,7 +340,7 @@
   }
   applyTheme(localStorage.getItem("theme") || "light");
 
-  /* ========== API HELPERS ========== */
+  /* ===== API HELPERS ===== */
   function toPayload(x) {
     return {
       household: HOUSEHOLD_KEY,
@@ -418,7 +376,7 @@
     await fetch(`${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`, { method: "DELETE" });
   }
 
-  /* ========== LOAD + REFRESH ========== */
+  /* ===== LOAD + REFRESH ===== */
   async function loadItems() {
     try {
       items = await apiGet();
@@ -432,34 +390,29 @@
   setInterval(loadItems, 10_000);
   window.addEventListener("online", loadItems);
 
-  /* ========== NAV + ANIMATION ========== */
+  /* ===== NAV + ANIMATIONS ===== */
   function showScreen(scr) {
-    if (scr === "add") {
-      // The "add" tab doesn't show a screen; it opens the sheet
-      highlightTab("add");
-      return;
-    }
-    const order = ["shopping", "pantry"]; // we animate between these
+    if (scr === "add") { highlightTab("add"); return; }
+    const order = ["shopping", "pantry"];
     const fromIdx = order.indexOf(currentScreen);
     const toIdx = order.indexOf(scr);
     currentScreen = scr;
-
     highlightTab(scr);
 
     const fromEl = document.getElementById(`screen-${order[fromIdx]}`);
     const toEl   = document.getElementById(`screen-${order[toIdx]}`);
 
-    // Set initial positions for animation
     fromEl.classList.add("active");
     toEl.classList.add("active");
-    if (toIdx > fromIdx) { // moving right → slide left
+
+    if (toIdx > fromIdx) {
       fromEl.style.transform = "translateX(0%)";
       toEl.style.transform   = "translateX(100%)";
       requestAnimationFrame(() => {
         fromEl.style.transform = "translateX(-100%)";
         toEl.style.transform   = "translateX(0%)";
       });
-    } else if (toIdx < fromIdx) { // moving left → slide right
+    } else if (toIdx < fromIdx) {
       fromEl.style.transform = "translateX(0%)";
       toEl.style.transform   = "translateX(-100%)";
       requestAnimationFrame(() => {
@@ -467,11 +420,9 @@
         toEl.style.transform   = "translateX(0%)";
       });
     } else {
-      // same screen
       toEl.style.transform = "translateX(0%)";
     }
 
-    // After animation, hide the offscreen one
     setTimeout(() => {
       document.querySelectorAll(".screen").forEach(s => {
         if (!s.id.endsWith(scr)) {
@@ -481,7 +432,6 @@
       });
     }, 280);
   }
-
   function highlightTab(scr) {
     const btns = document.querySelectorAll("#tabBar button");
     btns.forEach(b => b.classList.remove("active"));
@@ -490,7 +440,7 @@
     if (scr === "add")      btns[2].classList.add("active");
   }
 
-  // Swipe navigation
+  // Swipe Shopping <-> Pantry
   let touchStartX = 0;
   document.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
   document.addEventListener("touchend", e => {
@@ -502,19 +452,19 @@
     if (diff > 0 && i > 0)                  showScreen(order[i-1]);   // right swipe → prev
   }, { passive: true });
 
-  /* ========== BOTTOM SHEET ========== */
+  /* ===== BOTTOM SHEET ===== */
   const sheet = document.getElementById("sheet");
   const sheetBackdrop = document.getElementById("sheetBackdrop");
 
   function openSheet() {
     sheet.classList.add("open");
     sheetBackdrop.classList.add("open");
-    document.getElementById("itemInput").focus();
+    requestAnimationFrame(() => document.getElementById("itemInput").focus());
   }
   function closeSheet() {
     sheet.classList.remove("open");
     sheetBackdrop.classList.remove("open");
-    // snap tabs back to current view highlight if Add was selected
+    // snap tab highlight back if Add was selected
     highlightTab(currentScreen);
   }
 
@@ -522,14 +472,15 @@
     const name = itemInput.value.trim();
     const qty  = qtyInput.value.trim();
     const cat  = catInput.value.trim();
-    const dest = destInput.value || "shopping";
+    const dest = (destInput.value || "shopping").toLowerCase();
     if (!name || !qty) return;
 
-    const created = await apiCreate({ name, qty, cat, exp: null, done: false, location: dest });
-    items.push(created);
-    localStorage.setItem("cache_items", JSON.stringify(items));
+    await apiCreate({ name, qty, cat, exp: null, done: false, location: dest });
+
+    // ✅ authoritative refresh from DB to avoid stale UI
+    await loadItems();
+
     clearForm();
-    render();
     closeSheet();
     showScreen(dest === "shopping" ? "shopping" : "pantry");
   }
@@ -541,7 +492,7 @@
     destInput.value = "shopping";
   }
 
-  /* ========== ITEM ACTIONS ========== */
+  /* ===== ITEM ACTIONS ===== */
   async function toggleDone(idx) {
     const x = items[idx];
     x.done = !x.done;
@@ -577,11 +528,11 @@
     render();
   }
 
-  /* ========== SORTS ========== */
+  /* ===== SORTS ===== */
   function sortAlpha() { items.sort((a,b)=>a.name.localeCompare(b.name)); render(); }
   function sortCat()   { items.sort((a,b)=>(a.cat||"").localeCompare(b.cat||"")); render(); }
 
-  /* ========== RENDER ========== */
+  /* ===== RENDER ===== */
   function pill(text) {
     if (!text) return "";
     const span = document.createElement("span");
@@ -595,14 +546,20 @@
     const pUL = document.getElementById("pantryList");
     sUL.innerHTML = ""; pUL.innerHTML = "";
 
-    const fShop  = (document.getElementById("searchInput").value || "").toLowerCase();
-    const fPantry= (document.getElementById("searchInputPantry").value || "").toLowerCase();
+    const fShop   = (document.getElementById("searchInput").value || "").toLowerCase();
+    const fPantry = (document.getElementById("searchInputPantry").value || "").toLowerCase();
 
     items.forEach((item, index) => {
-      const nameMatch =
-        (item.location === "shopping" ? (!fShop  || item.name.toLowerCase().includes(fShop)) :
-                                        (!fPantry|| item.name.toLowerCase().includes(fPantry)));
-      if (!nameMatch) return;
+      const loc = (item.location || "").toLowerCase(); // ✅ normalize
+      const isShopping = loc === "shopping";
+      const isPantry   = loc === "pantry";
+      if (!isShopping && !isPantry) return; // ignore unknown locations
+
+      // search filter per tab
+      const match =
+        (isShopping ? (!fShop   || item.name.toLowerCase().includes(fShop))
+                    : (!fPantry || item.name.toLowerCase().includes(fPantry)));
+      if (!match) return;
 
       const li  = document.createElement("li");
       if (item.done) li.classList.add("done");
@@ -621,7 +578,7 @@
       pills.className = "pills";
       if (item.cat) pills.appendChild(pill(item.cat));
       if (item.exp) pills.appendChild(pill(`Exp ${item.exp}`));
-      pills.appendChild(pill(item.location === "shopping" ? "Shopping" : "Pantry"));
+      pills.appendChild(pill(isShopping ? "Shopping" : "Pantry"));
 
       info.appendChild(title);
       info.appendChild(pills);
@@ -629,7 +586,7 @@
       const moveBtn = document.createElement("button");
       moveBtn.className = "row-btn";
       moveBtn.title = "Move";
-      moveBtn.textContent = item.location === "shopping" ? "➡" : "⬅";
+      moveBtn.textContent = isShopping ? "➡" : "⬅";
       moveBtn.onclick = () => moveItem(index);
 
       const editBtn = document.createElement("button");
@@ -648,8 +605,8 @@
       li.appendChild(editBtn);
       li.appendChild(delBtn);
 
-      if (item.location === "shopping") sUL.appendChild(li);
-      else pUL.appendChild(li);
+      if (isShopping) sUL.appendChild(li);
+      else           pUL.appendChild(li);
     });
   }
 
@@ -657,17 +614,16 @@
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   }
 
-  /* ========== STARTUP ========== */
+  /* ===== STARTUP ===== */
   window.addEventListener("load", () => {
     loadItems();
-    // ensure shopping visible on first load
     document.getElementById("screen-shopping").classList.add("active");
     document.getElementById("screen-shopping").style.transform = "translateX(0%)";
   });
 </script>
 
-<!-- ✅ Register service worker -->
 <script>
+  /* Register service worker */
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
@@ -680,6 +636,7 @@
 
 </body>
 </html>
+
 
 
 
