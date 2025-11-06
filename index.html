@@ -3,6 +3,7 @@
 <head>
   <title>My Pantry Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.json">
 
   <style>
@@ -193,7 +194,7 @@
     /* ===== FAB ===== */
     .fab {
       position: fixed; right: 18px; bottom: 96px;
-      width: 56px; height: 56px; border-radius: 50%;
+      width: 56px; height: 56; border-radius: 50%;
       background: var(--primary); color: var(--primary-contrast);
       font-size: 28px; border: none;
       display: grid; place-items: center;
@@ -464,8 +465,7 @@
   function closeSheet() {
     sheet.classList.remove("open");
     sheetBackdrop.classList.remove("open");
-    // snap tab highlight back if Add was selected
-    highlightTab(currentScreen);
+    highlightTab(currentScreen); // if Add tab was lit, snap back
   }
 
   async function addItemFromSheet() {
@@ -636,6 +636,7 @@
 
 </body>
 </html>
+
 
 
 
