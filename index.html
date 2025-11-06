@@ -75,9 +75,7 @@
       border: 1px solid var(--border);
     }
 
-    ul {
-      padding-left: 0;
-    }
+    ul { padding-left: 0; }
 
     li {
       list-style: none;
@@ -184,6 +182,7 @@
 
   <!-- ✅ SCREENS -->
 
+  <!-- SHOPPING -->
   <div id="screen-shopping" class="screen active">
     <h2>Shopping List</h2>
     <input id="searchInput" placeholder="Search..." oninput="render()">
@@ -192,6 +191,7 @@
     <ul id="shoppingList"></ul>
   </div>
 
+  <!-- PANTRY -->
   <div id="screen-pantry" class="screen">
     <h2>Pantry</h2>
     <input id="searchInputPantry" placeholder="Search..." oninput="render()">
@@ -200,6 +200,7 @@
     <ul id="pantryList"></ul>
   </div>
 
+  <!-- ADD ITEM -->
   <div id="screen-add" class="screen">
     <h2>Add Item</h2>
 
@@ -238,9 +239,9 @@
   let items = [];
 
 
-  /* ========= SCREEN NAV ========= */
+  /* === SCREEN NAV === */
   function showScreen(scr) {
-    ["shopping", "pantry", "add"].forEach(s => {
+    ["shopping","pantry","add"].forEach(s=>{
       document.getElementById(`screen-${s}`).classList.remove("active");
     });
     document.getElementById(`screen-${scr}`).classList.add("active");
@@ -248,284 +249,277 @@
     const btns = document.querySelectorAll("#tabBar button");
     btns.forEach(btn => btn.classList.remove("active"));
 
-    if (scr === "shopping")  btns[0].classList.add("active");
-    if (scr === "pantry")    btns[1].classList.add("active");
-    if (scr === "add")       btns[2].classList.add("active");
+    if (scr==="shopping") btns[0].classList.add("active");
+    if (scr==="pantry")   btns[1].classList.add("active");
+    if (scr==="add")      btns[2].classList.add("active");
   }
 
 
-  /* ========= SWIPE ========= */
+  /* === SWIPE === */
   let touchStartX = 0;
-  document.addEventListener("touchstart", e => {
+  document.addEventListener("touchstart", e=>{
     touchStartX = e.changedTouches[0].screenX;
   });
 
-  document.addEventListener("touchend", e => {
+  document.addEventListener("touchend", e=>{
     let diff = e.changedTouches[0].screenX - touchStartX;
     if (Math.abs(diff) < 60) return;
 
-    let current = document.querySelector(".screen.active").id.replace("screen-", "");
-    const ordered = ["shopping", "pantry", "add"];
-    let i = ordered.indexOf(current);
+    let current = document.querySelector(".screen.active").id.replace("screen-","");
+    const ordered=["shopping","pantry","add"];
+    let i=ordered.indexOf(current);
 
-    if (diff < 0 && i < ordered.length - 1) showScreen(ordered[i+1]);
+    if (diff < 0 && i < ordered.length-1) showScreen(ordered[i+1]);
     if (diff > 0 && i > 0) showScreen(ordered[i-1]);
   });
 
 
-  /* ========= THEME ========= */
-  function applyTheme(theme) {
-    if (theme === "dark") document.body.classList.add("dark");
+  /* === THEME === */
+  function applyTheme(theme){
+    if(theme==="dark")document.body.classList.add("dark");
     else document.body.classList.remove("dark");
   }
-
-  function toggleTheme() {
-    const curr = localStorage.getItem("theme") || "light";
-    const next = curr === "light" ? "dark" : "light";
-    localStorage.setItem("theme", next);
+  function toggleTheme(){
+    const curr=localStorage.getItem("theme")||"light";
+    const next=curr==="light"?"dark":"light";
+    localStorage.setItem("theme",next);
     applyTheme(next);
   }
+  applyTheme(localStorage.getItem("theme")||"light");
 
-  applyTheme(localStorage.getItem("theme") || "light");
 
+  /* === API HELPERS === */
 
-  /* ========= API HELPERS ========= */
-
-  async function apiGet() {
-    const res = await fetch(
+  async function apiGet(){
+    const res=await fetch(
       `${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}&_=${Date.now()}`,
-      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+      {cache:"no-store",headers:{"Cache-Control":"no-cache"}}
     );
     return await res.json();
   }
 
-  function toPayload(x) {
-    return {
-      household: HOUSEHOLD_KEY,
-      name: x.name,
-      qty: x.qty,
-      cat: x.cat || "",
-      exp: x.exp || null,
-      done: !!x.done,
-      location: x.location
+  function toPayload(x){
+    return{
+      household:HOUSEHOLD_KEY,
+      name:x.name,
+      qty:x.qty,
+      cat:x.cat||"",
+      exp:x.exp||null,
+      done:!!x.done,
+      location:x.location
     };
   }
 
-  async function apiCreate(x) {
-    const res = await fetch(`${API_BASE}/items`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json", "Cache-Control":"no-cache"},
-      cache: "no-store",
-      body: JSON.stringify(toPayload(x))
+  async function apiCreate(x){
+    const res=await fetch(`${API_BASE}/items`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Cache-Control":"no-cache"},
+      cache:"no-store",
+      body:JSON.stringify(toPayload(x))
     });
     return await res.json();
   }
 
-  async function apiUpdate(x) {
-    const res = await fetch(`${API_BASE}/items/${x.id}`, {
-      method: "PUT",
-      headers: {"Content-Type": "application/json", "Cache-Control":"no-cache"},
-      cache: "no-store",
-      body: JSON.stringify(toPayload(x))
+  async function apiUpdate(x){
+    const res=await fetch(`${API_BASE}/items/${x.id}`,{
+      method:"PUT",
+      headers:{"Content-Type":"application/json","Cache-Control":"no-cache"},
+      cache:"no-store",
+      body:JSON.stringify(toPayload(x))
     });
     return await res.json();
   }
 
-  async function apiDelete(id) {
+  async function apiDelete(id){
     await fetch(
       `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}&_=${Date.now()}`,
-      { method:"DELETE", cache:"no-store", headers:{ "Cache-Control":"no-cache"} }
+      {method:"DELETE",cache:"no-store",headers:{"Cache-Control":"no-cache"}}
     );
   }
 
 
-  /* ========= LOAD ========= */
-  async function loadItems() {
-    try {
-      items = await apiGet();
-      localStorage.setItem("cache_items", JSON.stringify(items));
-    } catch {
-      items = JSON.parse(localStorage.getItem("cache_items") || "[]");
+  /* === LOAD === */
+  async function loadItems(){
+    try{
+      items=await apiGet();
+      localStorage.setItem("cache_items",JSON.stringify(items));
+    }catch{
+      items=JSON.parse(localStorage.getItem("cache_items")||"[]");
     }
     render();
   }
 
-  async function manualRefresh() {
+  async function manualRefresh(){
     await loadItems();
   }
 
-  setInterval(loadItems, 10_000);
-  window.addEventListener("online", loadItems);
+  setInterval(loadItems,10_000);
+  window.addEventListener("online",loadItems);
 
 
-  /* ========= ADD ITEM ========= */
-  async function addItem() {
-    const name = itemInput.value.trim();
-    const qty  = qtyInput.value.trim();
-    const cat  = catInput.value.trim();
-    const dest = destInput.value;
+  /* === ADD ITEM === */
+  async function addItem(){
+    const name=itemInput.value.trim();
+    const qty =qtyInput.value.trim();
+    const cat =catInput.value.trim();
+    const dest=destInput.value;
 
-    if (!name || !qty) return;
+    if(!name||!qty) return;
 
-    await apiCreate({ name, qty, cat, exp:null, done:false, location:dest });
+    await apiCreate({name,qty,cat,exp:null,done:false,location:dest});
 
     await loadItems();
     clearForm();
     showScreen("shopping");
   }
 
-  function clearForm() {
-    itemInput.value = "";
-    qtyInput.value = "";
-    catInput.value = "";
-    destInput.value = "shopping";
+  function clearForm(){
+    itemInput.value="";
+    qtyInput.value="";
+    catInput.value="";
+    destInput.value="shopping";
   }
 
 
-  /* ========= ITEM ACTIONS ========= */
-  async function toggleDone(idx) {
-    const x = items[idx];
-    x.done = !x.done;
-    items[idx] = await apiUpdate(x);
-    localStorage.setItem("cache_items", JSON.stringify(items));
+  /* === ITEM ACTIONS === */
+  async function toggleDone(idx){
+    const x=items[idx];
+    x.done=!x.done;
+    items[idx]=await apiUpdate(x);
+    localStorage.setItem("cache_items",JSON.stringify(items));
     render();
   }
 
-  async function moveItem(idx) {
-    const x = items[idx];
-    x.location = x.location === "shopping" ? "pantry" : "shopping";
-    items[idx] = await apiUpdate(x);
-    localStorage.setItem("cache_items", JSON.stringify(items));
+  async function moveItem(idx){
+    const x=items[idx];
+    x.location=(x.location==="shopping")?"pantry":"shopping";
+    items[idx]=await apiUpdate(x);
+    localStorage.setItem("cache_items",JSON.stringify(items));
     render();
   }
 
-  async function editItem(idx) {
-    const x = items[idx];
+  async function editItem(idx){
+    const x=items[idx];
 
-    const name = prompt("Name:", x.name);
-    if (name===null) return;
+    const name=prompt("Name:",x.name);
+    if(name===null)return;
 
-    const qty  = prompt("Qty:", x.qty);
-    if (qty===null) return;
+    const qty =prompt("Qty:",x.qty);
+    if(qty===null)return;
 
-    const cat  = prompt("Category:", x.cat || "");
-    if (cat===null) return;
+    const cat =prompt("Category:",x.cat||"");
+    if(cat===null)return;
 
-    const exp  = prompt("Expiration (YYYY-MM-DD):", x.exp || "");
-    if (exp===null) return;
-
-    Object.assign(x, { name, qty, cat, exp });
-    items[idx] = await apiUpdate(x);
-    localStorage.setItem("cache_items", JSON.stringify(items));
+    Object.assign(x,{name,qty,cat});
+    items[idx]=await apiUpdate(x);
+    localStorage.setItem("cache_items",JSON.stringify(items));
     render();
   }
 
-  async function deleteItem(idx) {
+  async function deleteItem(idx){
     await apiDelete(items[idx].id);
     items.splice(idx,1);
-    localStorage.setItem("cache_items", JSON.stringify(items));
+    localStorage.setItem("cache_items",JSON.stringify(items));
     render();
   }
 
-  function sortAlpha() {
-    items.sort((a, b) => a.name.localeCompare(b.name));
+  function sortAlpha(){
+    items.sort((a,b)=>a.name.localeCompare(b.name));
     render();
   }
 
-  function sortCat() {
-    items.sort((a, b) => (a.cat||"").localeCompare(b.cat||""));
+  function sortCat(){
+    items.sort((a,b)=>(a.cat||"").localeCompare(b.cat||""));
     render();
   }
 
 
-  /* ========= RENDER ========= */
+  /* === RENDER === */
 
-  function makePill(text) {
-    if (!text) return null;
-    const span = document.createElement("span");
-    span.className = "pill";
-    span.textContent = text;
+  function makePill(text){
+    if(!text) return null;
+    const span=document.createElement("span");
+    span.className="pill";
+    span.textContent=text;
     return span;
   }
 
-  function render() {
-    shoppingList.innerHTML = "";
-    pantryList.innerHTML = "";
+  function render(){
+    shoppingList.innerHTML="";
+    pantryList.innerHTML="";
 
-    const fShop = (document.getElementById("searchInput").value || "").toLowerCase();
-    const fPan  = (document.getElementById("searchInputPantry").value || "").toLowerCase();
+    const fShop=(document.getElementById("searchInput").value||"").toLowerCase();
+    const fPan =(document.getElementById("searchInputPantry").value||"").toLowerCase();
 
-    items.forEach((item, index) => {
+    items.forEach((item,index)=>{
+      const loc=(item.location||"").toLowerCase();
 
-      const loc = (item.location || "").toLowerCase();
-      const li = document.createElement("li");
+      const li=document.createElement("li");
 
-      const chk = document.createElement("input");
-      chk.type = "checkbox";
-      chk.checked = item.done;
-      chk.onchange = () => toggleDone(index);
+      const chk=document.createElement("input");
+      chk.type="checkbox";
+      chk.checked=item.done;
+      chk.onchange=()=>toggleDone(index);
 
-      const info = document.createElement("div");
-      info.className = "info";
+      const info=document.createElement("div");
+      info.className="info";
 
-      const top = document.createElement("div");
-      const expText = item.exp ? ` — ${item.exp}` : "";
-      top.textContent = `${item.name} — ${item.qty} — ${item.cat||""}${expText}`;
-      if (item.done) top.classList.add("done");
+      const top=document.createElement("div");
+      top.textContent=`${item.name} — ${item.qty} — ${item.cat||""}`;
+      if(item.done) top.classList.add("done");
 
-      const pills = document.createElement("div");
-      pills.className = "pills";
-      if (item.cat) pills.appendChild(makePill(item.cat));
-      if (item.exp) pills.appendChild(makePill(`Exp ${item.exp}`));
-      pills.appendChild(makePill(loc === "shopping" ? "Shopping" : "Pantry"));
+      const pills=document.createElement("div");
+      pills.className="pills";
+      if(item.cat) pills.appendChild(makePill(item.cat));
+      pills.appendChild(makePill(loc==="shopping"?"Shopping":"Pantry"));
 
       info.appendChild(top);
       info.appendChild(pills);
 
-      const moveBtn = document.createElement("button");
-      moveBtn.textContent = (loc === "shopping") ? "➡" : "⬅";
-      moveBtn.onclick = () => moveItem(index);
+      const moveBtn=document.createElement("button");
+      moveBtn.textContent=(loc==="shopping")?"➡":"⬅";
+      moveBtn.onclick=()=>moveItem(index);
 
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.onclick = () => editItem(index);
+      const editBtn=document.createElement("button");
+      editBtn.textContent="Edit";
+      editBtn.onclick=()=>editItem(index);
 
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "X";
-      delBtn.onclick = () => deleteItem(index);
+      const delBtn=document.createElement("button");
+      delBtn.textContent="X";
+      delBtn.onclick=()=>deleteItem(index);
 
-      li.append(chk, info, moveBtn, editBtn, delBtn);
+      li.append(chk,info,moveBtn,editBtn,delBtn);
 
-      if (loc === "shopping") {
-        if (!fShop || item.name.toLowerCase().includes(fShop)) {
+      if(loc==="shopping"){
+        if(!fShop||item.name.toLowerCase().includes(fShop)){
           shoppingList.appendChild(li);
         }
-      } else if (loc === "pantry") {
-        if (!fPan || item.name.toLowerCase().includes(fPan)) {
+      } else if(loc==="pantry"){
+        if(!fPan||item.name.toLowerCase().includes(fPan)){
           pantryList.appendChild(li);
         }
       }
     });
   }
 
-  window.addEventListener("load", loadItems);
+  window.addEventListener("load",loadItems);
 </script>
 
 
-<!-- ✅ Register service worker -->
 <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",()=>{
       navigator.serviceWorker
         .register("./service-worker.js")
-        .then(() => console.log("✅ Service Worker Registered"))
-        .catch(err => console.log("SW reg failed:", err));
+        .then(()=>console.log("✅ SW registered"))
+        .catch(err=>console.log("SW error:",err));
     });
   }
 </script>
 
 </body>
 </html>
+
 
 
 
