@@ -76,9 +76,7 @@
       border: 1px solid var(--border);
     }
 
-    ul {
-      padding-left: 0;
-    }
+    ul { padding-left: 0; }
 
     li {
       list-style: none;
@@ -201,7 +199,7 @@
       <option>Bread</option>
     </select>
 
-    <!-- Location for future list expansion -->
+    <!-- Location for future lists -->
     <select id="destInput">
       <option value="shopping">Add → Shopping</option>
       <option value="pantry">Add → Pantry</option>
@@ -248,15 +246,14 @@
 
 
   /* =======================
-      SWIPE
+      SWIPE CONTROL
   ======================== */
   let touchStartX = 0;
-
-  document.addEventListener("touchstart", function(e) {
+  document.addEventListener("touchstart", e => {
     touchStartX = e.changedTouches[0].screenX;
   });
 
-  document.addEventListener("touchend", function(e) {
+  document.addEventListener("touchend", e => {
     let diff = e.changedTouches[0].screenX - touchStartX;
     if (Math.abs(diff) < 60) return;
 
@@ -264,12 +261,8 @@
     const ordered = ["shopping", "pantry", "add"];
     let i = ordered.indexOf(current);
 
-    if (diff < 0 && i < ordered.length - 1) {
-      showScreen(ordered[i+1]); // left swipe → next
-    }
-    if (diff > 0 && i > 0) {
-      showScreen(ordered[i-1]); // right swipe → previous
-    }
+    if (diff < 0 && i < ordered.length - 1) showScreen(ordered[i+1]);
+    if (diff > 0 && i > 0) showScreen(ordered[i-1]);
   });
 
 
@@ -294,6 +287,16 @@
   /* =======================
       API HELPERS
   ======================== */
+
+  // ✅ Proper fresh fetch
+  async function apiGet() {
+    const res = await fetch(
+      `${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}&_=${Date.now()}`,
+      { cache: "no-store", headers: { "Cache-Control": "no-cache" } }
+    );
+    return await res.json();
+  }
+
   function toPayload(x) {
     return {
       household: HOUSEHOLD_KEY,
@@ -306,15 +309,11 @@
     };
   }
 
-  async function apiGet() {
-    const res = await fetch(`${API_BASE}/items?household=${encodeURIComponent(HOUSEHOLD_KEY)}`);
-    return await res.json();
-  }
-
   async function apiCreate(x) {
     const res = await fetch(`${API_BASE}/items`, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {"Content-Type": "application/json", "Cache-Control":"no-cache"},
+      cache: "no-store",
       body: JSON.stringify(toPayload(x))
     });
     return await res.json();
@@ -323,7 +322,8 @@
   async function apiUpdate(x) {
     const res = await fetch(`${API_BASE}/items/${x.id}`, {
       method: "PUT",
-      headers: {"Content-Type": "application/json"},
+      headers: {"Content-Type": "application/json", "Cache-Control":"no-cache"},
+      cache: "no-store",
       body: JSON.stringify(toPayload(x))
     });
     return await res.json();
@@ -331,14 +331,14 @@
 
   async function apiDelete(id) {
     await fetch(
-      `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}`,
-      { method: "DELETE" }
+      `${API_BASE}/items/${id}?household=${encodeURIComponent(HOUSEHOLD_KEY)}&_=${Date.now()}`,
+      { method: "DELETE", cache:"no-store", headers:{ "Cache-Control":"no-cache"} }
     );
   }
 
 
   /* =======================
-      LOAD + REFRESH
+      LOAD / REFRESH
   ======================== */
   async function loadItems() {
     try {
@@ -359,7 +359,7 @@
 
 
   /* =======================
-      ACTIONS
+      ADD ITEM  ✅ FIXED
   ======================== */
   async function addItem() {
     const name = itemInput.value.trim();
@@ -369,13 +369,15 @@
 
     if (!name || !qty) return;
 
-    const created = await apiCreate({ name, qty, cat, exp:null, done:false, location:dest });
-    items.push(created);
-    localStorage.setItem("cache_items", JSON.stringify(items));
+    await apiCreate({ name, qty, cat, exp:null, done:false, location:dest });
+
+    // ✅ ALWAYS reload from DB to stay consistent
+    await loadItems();
+
     clearForm();
-    render();
     showScreen("shopping");
   }
+
 
   function clearForm() {
     itemInput.value = "";
@@ -384,11 +386,14 @@
     destInput.value = "shopping";
   }
 
+
+  /* =======================
+      ITEM ACTIONS
+  ======================== */
   async function toggleDone(idx) {
     const x = items[idx];
     x.done = !x.done;
-    const updated = await apiUpdate(x);
-    items[idx] = updated;
+    items[idx] = await apiUpdate(x);
     localStorage.setItem("cache_items", JSON.stringify(items));
     render();
   }
@@ -396,8 +401,7 @@
   async function moveItem(idx) {
     const x = items[idx];
     x.location = x.location === "shopping" ? "pantry" : "shopping";
-    const updated = await apiUpdate(x);
-    items[idx] = updated;
+    items[idx] = await apiUpdate(x);
     localStorage.setItem("cache_items", JSON.stringify(items));
     render();
   }
@@ -418,8 +422,7 @@
     if (exp===null) return;
 
     Object.assign(x, { name, qty, cat, exp });
-    const updated = await apiUpdate(x);
-    items[idx] = updated;
+    items[idx] = await apiUpdate(x);
     localStorage.setItem("cache_items", JSON.stringify(items));
     render();
   }
@@ -430,6 +433,7 @@
     localStorage.setItem("cache_items", JSON.stringify(items));
     render();
   }
+
 
   function sortAlpha() {
     items.sort((a, b) => a.name.localeCompare(b.name));
@@ -449,10 +453,13 @@
     shoppingList.innerHTML = "";
     pantryList.innerHTML = "";
 
-    const filterShopping = (document.getElementById("searchInput").value || "").toLowerCase();
-    const filterPantry   = (document.getElementById("searchInputPantry").value || "").toLowerCase();
+    const fShop = (document.getElementById("searchInput").value || "").toLowerCase();
+    const fPan  = (document.getElementById("searchInputPantry").value || "").toLowerCase();
 
     items.forEach((item, index) => {
+
+      const loc = (item.location || "").toLowerCase();
+
       const li = document.createElement("li");
 
       const chk = document.createElement("input");
@@ -462,12 +469,13 @@
 
       const info = document.createElement("div");
       info.className = "info";
-      const expText = item.exp ? ` — ${item.exp}` : "";
+
+      let expText = item.exp ? ` — ${item.exp}` : "";
       info.textContent = `${item.name} — ${item.qty} — ${item.cat||""}${expText}`;
       if (item.done) info.classList.add("done");
 
       const moveBtn = document.createElement("button");
-      moveBtn.textContent = item.location === "shopping" ? "➡" : "⬅";
+      moveBtn.textContent = (loc === "shopping") ? "➡" : "⬅";
       moveBtn.onclick = () => moveItem(index);
 
       const editBtn = document.createElement("button");
@@ -478,18 +486,14 @@
       delBtn.textContent = "X";
       delBtn.onclick = () => deleteItem(index);
 
-      li.appendChild(chk);
-      li.appendChild(info);
-      li.appendChild(moveBtn);
-      li.appendChild(editBtn);
-      li.appendChild(delBtn);
+      li.append(chk, info, moveBtn, editBtn, delBtn);
 
-      if (item.location === "shopping") {
-        if (!filterShopping || item.name.toLowerCase().includes(filterShopping)) {
+      if (loc === "shopping") {
+        if (!fShop || item.name.toLowerCase().includes(fShop)) {
           shoppingList.appendChild(li);
         }
-      } else {
-        if (!filterPantry || item.name.toLowerCase().includes(filterPantry)) {
+      } else if (loc === "pantry") {
+        if (!fPan || item.name.toLowerCase().includes(fPan)) {
           pantryList.appendChild(li);
         }
       }
@@ -515,6 +519,7 @@
 
 </body>
 </html>
+
 
 
 
